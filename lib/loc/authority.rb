@@ -6,14 +6,15 @@ module LOCAuthority
   base_uri 'id.loc.gov'
   disable_rails_query_string_format
 
+  SEARCH_PATH    = '/search/'.freeze
+  SEARCH_HEADERS = { 'Accept' => 'text/xml' }.freeze
+
   def self.search(term, scheme, type)
-    headers = { 'Accept' => 'text/xml' }
     query = {
       q: ["aLabel:\"#{term}\"", scheme, type],
       format: 'atom'
     }
-    puts query
-    response = get('/search/', headers: headers, query: query)
+    response = get(SEARCH_PATH, headers: SEARCH_HEADERS, query: query)
     response.body
   end
 
