@@ -41,8 +41,19 @@ namespace :authorizer do
 
     # rake authorizer:authorities:lookup
     desc 'Lookup authorities'
-    task :lookup, [:directory] do |_t, args|
-      # TODO: lookup auth records w/o uri / identifier
+    task :lookup do |_t, args|
+      # TODO: Getty AAT
+      Auth.where(uri: nil).each do |auth|
+        next if auth[:type] == 'aat'
+        searcher = auth[:type] == 'subject' ? LOCAuthority::Subject : LOCAuthority::Name
+        query_uri = searcher.search(auth[:heading], true)
+        if query_uri != auth.query
+          logger.debug "Setting query for \"#{auth[:heading]}\" to \"#{query_uri}\""
+          auth.query = query_uri
+          auth.save
+        end
+        # TODO: lookup auth records w/o uri / identifier
+      end
     end
 
     # rake authorizer:authorities:search_name['Obama\, Barack']
