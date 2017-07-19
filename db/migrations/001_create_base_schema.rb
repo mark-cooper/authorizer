@@ -2,12 +2,12 @@ Sequel.migration do
   up do
     create_table(:bibs) do
       primary_key :id
-      String :bib_number, null: false
+      String :bib_number, null: false, unique: true
     end
 
     create_table(:auths) do
       primary_key :id
-      String  :datafield, null: false
+      String  :datafield, null: false, unique: true
       String  :heading, null: false
       String  :query
       Integer :matches
