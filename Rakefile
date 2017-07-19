@@ -52,7 +52,9 @@ namespace :authorizer do
       count = 0
       MARC::DirectoryReader.new(directory, :xml).each_record do |record|
         record['245']['a']
-        # TODO: lookup heading, add to db
+        # TODO: add bib to db if not already present
+        # TODO: lookup datafield, add to db if not already present
+        # TODO: if heading present check for uri and if update if different
         count += 1
       end
       logger.debug "Bib records read: #{count}"
