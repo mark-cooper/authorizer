@@ -7,6 +7,7 @@ Sequel.migration do
 
     create_table(:auths) do
       primary_key :id
+      String  :datafield, null: false
       String  :heading, null: false
       String  :query
       Integer :matches
@@ -24,7 +25,8 @@ Sequel.migration do
   end
 
   down do
-    drop_table(:bibs)
+    drop_table(:bibs_auths)
     drop_table(:auths)
+    drop_table(:bibs)
   end
 end
