@@ -1,10 +1,5 @@
 Sequel.migration do
   up do
-    create_table(:bibs) do
-      primary_key :id
-      String :bib_number, null: false, unique: true
-    end
-
     create_table(:auths) do
       primary_key :id
       String  :datafield, null: false, unique: true
@@ -16,16 +11,21 @@ Sequel.migration do
       Boolean :ils, default: false
     end
 
-    create_table(:bibs_auths) do
-      foreign_key :bib_id,  :bibs,  null: false
+    create_table(:bibs) do
+      primary_key :id
+      String :bib_number, null: false, unique: true
+    end
+
+    create_table(:auths_bibs) do
       foreign_key :auth_id, :auths, null: false
-      primary_key [:bib_id, :auth_id]
-      index [:bib_id, :auth_id]
+      foreign_key :bib_id,  :bibs,  null: false
+      primary_key [:auth_id, :bib_id]
+      index [:auth_id, :bib_id]
     end
   end
 
   down do
-    drop_table(:bibs_auths)
+    drop_table(:auths_bibs)
     drop_table(:auths)
     drop_table(:bibs)
   end
