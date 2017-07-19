@@ -11,6 +11,7 @@ Sequel::Model.db = Sequel.connect(
   password: 'authorizer'
 )
 
+require_relative 'app/models/auth'
 require_relative 'app/models/bib'
 require_relative 'lib/loc/authority'
 require_relative 'lib/marc/directory_reader'
@@ -66,12 +67,15 @@ namespace :authorizer do
         bib_number = record['001'].value
         bib_record = Bib.where(bib_number: bib_number).first
         unless bib_record
-          # TODO: create it!
+          bib_record = Bib.new(bib_number: bib_number).save
+          logger.debug("Created bib with number: #{bib_number}")
         end
+        puts bib_record.bib_number
 
         # TODO: lookup datafields, add to db if not already present
         # TODO: if heading present check for uri and if update if different
         count += 1
+        break
       end
       logger.debug "Bib records read: #{count}"
     end
