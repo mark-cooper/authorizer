@@ -55,4 +55,16 @@ rake authorizer:authorities:search_name['Obama\, Barack']
 rake authorizer:authorities:search_subject['Cyberpunk fiction']
 ```
 
+## Queries
+
+```
+SELECT *
+FROM authorizer.auths a
+JOIN authorizer.auths_bibs ab
+ON a.id = ab.auth_id
+JOIN authorizer.bibs  b
+ON b.id = ab.bib_id
+;
+```
+
 ---
