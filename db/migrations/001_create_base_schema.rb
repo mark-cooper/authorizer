@@ -3,6 +3,7 @@ Sequel.migration do
     create_table(:auths) do
       primary_key :id
       String  :datafield, null: false, unique: true
+      String  :type
       String  :source
       String  :heading, null: false
       String  :query
