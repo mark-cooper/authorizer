@@ -14,7 +14,9 @@ Sequel::Model.db = Sequel.connect(
 require_relative 'app/models/auth'
 require_relative 'app/models/bib'
 require_relative 'lib/loc/authority'
+require_relative 'lib/marc/datafield'
 require_relative 'lib/marc/directory_reader'
+require_relative 'lib/marc/tag'
 
 LOG_FILE = 'authorizer.log'
 Logging.logger.root.add_appenders([
@@ -44,6 +46,7 @@ namespace :authorizer do
     end
 
     # rake authorizer:authorities:search_name['Obama\, Barack']
+    # rake authorizer:authorities:search_name['Bishop\, Elizabeth\,1911-1979']
     desc 'Search for a subject authority record'
     task :search_name, [:term] do |_t, args|
       puts LOCAuthority::Name.search(args[:term])
@@ -70,10 +73,40 @@ namespace :authorizer do
           bib_record = Bib.new(bib_number: bib_number).save
           logger.debug("Created bib with number: #{bib_number}")
         end
-        puts bib_record.bib_number
 
-        # TODO: lookup datafields, add to db if not already present
-        # TODO: if heading present check for uri and if update if different
+        # TODO: memberOf for search
+        record.each_by_tag(MARC::Tag::AUTHS) do |auth|
+          type    = MARC::Tag::NAMES.include?(auth.tag) ? 'name' : 'subject'
+          heading = type == 'name' ? auth.to_query_str(',') : auth.to_query_str
+          source  = auth['2']
+          uri     = auth[0]
+
+          data = {
+            datafield: auth.to_s,
+            heading: heading,
+            type: type,
+            source: source,
+            uri: uri,
+            ils: true
+          }
+
+          auth_record = Auth.where(datafield: data[:datafield]).first
+          if auth_record
+            bib_has_auth = bib_record.auths.find do |a|
+              a[:datafield] == auth_record[:datafield]
+            end
+            bib_record.auths << auth_record unless bib_has_auth
+            if uri && auth_record.uri != uri
+              auth_record.uri = uri
+              auth_record.save
+              logger.debug("Updated uri for datafield #{data[:datafield]}")
+            end
+          else
+            auth_record = Auth.new(data).save
+            bib_record.auths << auth_record
+            logger.debug("Created auth with datafield: #{data[:datafield]}")
+          end
+        end
         count += 1
         break
       end
