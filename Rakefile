@@ -1,6 +1,6 @@
 #!/usr/bin/env ruby
 require 'logging'
-require_relative 'lib/loc/query'
+require_relative 'lib/loc/authority'
 require_relative 'lib/marc/directory_reader'
 
 logger_appenders = [
