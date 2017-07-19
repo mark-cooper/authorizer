@@ -95,7 +95,7 @@ namespace :authorizer do
             bib_has_auth = bib_record.auths.find do |a|
               a[:datafield] == auth_record[:datafield]
             end
-            bib_record.auths << auth_record unless bib_has_auth
+            bib_record.add_auth auth_record unless bib_has_auth
             if uri && auth_record.uri != uri
               auth_record.uri = uri
               auth_record.save
@@ -103,7 +103,7 @@ namespace :authorizer do
             end
           else
             auth_record = Auth.new(data).save
-            bib_record.auths << auth_record
+            bib_record.add_auth auth_record
             logger.debug("Created auth with datafield: #{data[:datafield]}")
           end
         end
