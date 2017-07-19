@@ -44,7 +44,7 @@ namespace :authorizer do
     task :lookup do |_t, args|
       # TODO: Getty AAT
       Auth.where(uri: nil).each do |auth|
-        next if auth[:type] == 'aat'
+        next if auth[:source] == 'aat'
         searcher = auth[:type] == 'subject' ? LOCAuthority::Subject : LOCAuthority::Name
         query_uri = searcher.search(auth[:heading], true)
         if query_uri != auth.query
