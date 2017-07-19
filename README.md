@@ -48,22 +48,39 @@ bundle exec sequel -m db/migrations \
   "mysql2://127.0.0.1/authorizer?user=authorizer&password=authorizer"
 ```
 
+## Loading data
+
+```bash
+rake authorizer:db:populate
+rake authorizer:authorities:lookup
+```
+
 ## Tasks
 
-```
+```bash
 rake authorizer:authorities:search_name['Obama\, Barack']
 rake authorizer:authorities:search_subject['Cyberpunk fiction']
 ```
 
 ## Queries
 
-```
-SELECT *
+```sql
+SELECT
+	b.bib_number,
+  a.tag,
+	a.datafield,
+  a.heading,
+  a.type,
+  a.source,
+  a.query,
+  a.uri,
+  a.ils
 FROM authorizer.auths a
 JOIN authorizer.auths_bibs ab
 ON a.id = ab.auth_id
 JOIN authorizer.bibs  b
 ON b.id = ab.bib_id
+ORDER BY b.bib_number, a.tag, a.source, a.heading
 ;
 ```
 
