@@ -1,5 +1,17 @@
 #!/usr/bin/env ruby
 require 'logging'
+require 'sequel'
+
+# TODO: refactor db connection
+Sequel::Model.db = Sequel.connect(
+  adapter: 'mysql2',
+  host: '127.0.0.1',
+  database: 'authorizer',
+  user: 'authorizer',
+  password: 'authorizer'
+)
+
+require_relative 'app/models/bib'
 require_relative 'lib/loc/authority'
 require_relative 'lib/marc/directory_reader'
 
@@ -51,9 +63,13 @@ namespace :authorizer do
       # TODO: check directory
       count = 0
       MARC::DirectoryReader.new(directory, :xml).each_record do |record|
-        record['245']['a']
-        # TODO: add bib to db if not already present
-        # TODO: lookup datafield, add to db if not already present
+        bib_number = record['001'].value
+        bib_record = Bib.where(bib_number: bib_number).first
+        unless bib_record
+          # TODO: create it!
+        end
+
+        # TODO: lookup datafields, add to db if not already present
         # TODO: if heading present check for uri and if update if different
         count += 1
       end
