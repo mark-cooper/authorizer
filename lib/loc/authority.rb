@@ -9,11 +9,23 @@ module LOCAuthority
   SEARCH_PATH    = '/search/'.freeze
   SEARCH_HEADERS = { 'Accept' => 'text/xml' }.freeze
 
-  def self.search(term, scheme, type)
+  def self.debug_uri(query)
+    File.join(
+      'http://',
+      base_uri,
+      SEARCH_PATH,
+      "q=#{query[:q].join('&q=')}",
+      "&format=#{query[:format]}"
+    )
+  end
+
+  def self.search(term, scheme, type, debug = false)
     query = {
       q: ["aLabel:\"#{term}\"", scheme, type],
       format: 'atom'
     }
+    uri = debug_uri query
+    return uri if debug
     response = get(SEARCH_PATH, headers: SEARCH_HEADERS, query: query)
     response.body
   end
@@ -22,8 +34,8 @@ module LOCAuthority
   class Name
     TYPE   = 'rdftype:Authority'.freeze
     SCHEME = 'cs:http://id.loc.gov/authorities/names'.freeze
-    def self.search(term)
-      LOCAuthority.search(term, SCHEME, TYPE)
+    def self.search(term, debug = false)
+      LOCAuthority.search(term, SCHEME, TYPE, debug)
     end
   end
 
@@ -31,8 +43,8 @@ module LOCAuthority
   class Subject
     TYPE   = 'rdftype:Authority'.freeze
     SCHEME = 'cs:http://id.loc.gov/authorities/subjects'.freeze
-    def self.search(term)
-      LOCAuthority.search(term, SCHEME, TYPE)
+    def self.search(term, debug = false)
+      LOCAuthority.search(term, SCHEME, TYPE, debug)
     end
   end
 end
