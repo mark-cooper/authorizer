@@ -1,5 +1,6 @@
 #!/usr/bin/env ruby
 require 'logging'
+require_relative 'lib/loc/query'
 require_relative 'lib/marc/directory_reader'
 
 logger_appenders = [
@@ -38,6 +39,18 @@ namespace :authorizer do
         count += 1
       end
       logger.debug "Bib records read: #{count}"
+    end
+
+    # rake authorizer:authorities:search_name['Obama\, Barack']
+    desc 'Search for a subject authority record'
+    task :search_name, [:term] do |_t, args|
+      puts LOCAuthority::Name.search(args[:term])
+    end
+
+    # rake authorizer:authorities:search_subject['Cyberpunk fiction']
+    desc 'Search for a subject authority record'
+    task :search_subject, [:term] do |_t, args|
+      puts LOCAuthority::Subject.search(args[:term])
     end
   end
 end
