@@ -1,3 +1,3 @@
 class Bib < Sequel::Model
-  # TODO: stuff
+  many_to_many :auths
 end
