@@ -1,7 +1,9 @@
+
 #!/usr/bin/env ruby
 require 'logging'
 require 'sequel'
 
+# TODO: config file
 # TODO: refactor db connection
 Sequel::Model.db = Sequel.connect(
   adapter: 'mysql2',
@@ -18,7 +20,7 @@ require_relative 'lib/marc/datafield'
 require_relative 'lib/marc/directory_reader'
 require_relative 'lib/marc/tag'
 
-LOG_FILE = 'authorizer.log'
+LOG_FILE = 'authorizer.log'.freeze
 Logging.logger.root.add_appenders([
   Logging.appenders.stdout,
   Logging.appenders.file(LOG_FILE)
@@ -33,7 +35,7 @@ namespace :authorizer do
   namespace :authorities do
     desc 'Download authority records'
     task :download, [:directory] do |_t, args|
-      directory = args[:directory] || 'data/bib'
+      directory = args[:directory] || 'data/auth'
       # TODO: check directory
       # TODO: use auth records with uri in db
       puts directory
@@ -48,11 +50,17 @@ namespace :authorizer do
         searcher = auth[:type] == 'subject' ? LOCAuthority::Subject : LOCAuthority::Name
         query_uri = searcher.search(auth[:heading], true)
         if query_uri != auth.query
-          logger.debug "Setting query for \"#{auth[:heading]}\" to \"#{query_uri}\""
-          auth.query = query_uri
-          auth.save
+          begin
+            # updated query means not queried (via authorizer) yet!
+            logger.debug "Setting query for \"#{auth[:heading]}\" to \"#{query_uri}\""
+            auth.query   = query_uri
+            auth.matches = nil
+            auth.save
+          rescue Sequel::DatabaseError => ex
+            logger.error ex.message
+          end
         end
-        # TODO: lookup auth records w/o uri / identifier
+        # TODO: lookup auth records w/o uri / identifier if matches nil
       end
     end
 
@@ -71,6 +79,8 @@ namespace :authorizer do
   end
 
   namespace :db do
+    # TODO: rake authorizer:db:sweep (remove auths not associated with anything)
+
     # rake authorizer:db:populate
     desc 'Add headings from mrc to database'
     task :populate, [:directory] do |_t, args|
@@ -80,6 +90,7 @@ namespace :authorizer do
       MARC::DirectoryReader.new(directory, :xml).each_record do |record|
         bib_number = record['001'].value
         bib_record = Bib.where(bib_number: bib_number).first
+        datafields = []
         unless bib_record
           bib_record = Bib.new(bib_number: bib_number).save
           logger.debug("Created bib with number: #{bib_number}")
@@ -90,16 +101,19 @@ namespace :authorizer do
           type    = MARC::Tag::NAMES.include?(auth.tag) ? 'name' : 'subject'
           heading = type == 'name' ? auth.to_query_str(',') : auth.to_query_str
           source  = auth['2']
-          uri     = auth[0]
+          uri     = auth['0']
+          ils     = uri ? true : false
 
           data = {
+            tag: auth.tag,
             datafield: auth.to_s,
             heading: heading,
             type: type,
             source: source,
             uri: uri,
-            ils: true
+            ils: ils
           }
+          datafields << data[:datafield]
 
           auth_record = Auth.where(datafield: data[:datafield]).first
           if auth_record
@@ -118,8 +132,15 @@ namespace :authorizer do
             logger.debug("Created auth with datafield: #{data[:datafield]}")
           end
         end
+
+        # remove any auths not in datafields ('cus record was updated)
+        bib_record.auths.each do |auth|
+          unless datafields.include?(auth[:datafield])
+            bib_record.remove_auth auth
+          end
+        end
         count += 1
-        break
+        # break
       end
       logger.debug "Bib records read: #{count}"
     end
