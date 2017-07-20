@@ -10,7 +10,7 @@ module LOCAuthority
   SEARCH_HEADERS = { 'Accept' => 'text/xml' }.freeze
 
   def self.debug_uri(query)
-    "#{base_uri}#{SEARCH_PATH}?q=#{query[:q].join('&q=')}&format=#{query[:format]}"
+    "#{base_uri}#{SEARCH_PATH}?q=#{query[:q].join('&q=')}&format=#{query[:format]}".gsub(/\s/, '+')
   end
 
   def self.search(term, scheme, type, debug = false)
