@@ -64,6 +64,25 @@ rake authorizer:authorities:search_subject['Cyberpunk fiction']
 
 ## Queries
 
+Auths only:
+
+```sql
+SELECT
+  a.tag,
+  a.datafield,
+  a.heading,
+  a.type,
+  a.source,
+  a.query,
+  a.uri,
+  a.ils
+FROM authorizer.auths a
+ORDER BY a.tag, a.source, a.heading
+;
+```
+
+By bib:
+
 ```sql
 SELECT
 	b.bib_number,
