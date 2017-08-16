@@ -27,10 +27,11 @@ docker run -d \
   -e MYSQL_DATABASE=authorizer \
   -e MYSQL_USER=authorizer \
   -e MYSQL_PASSWORD=authorizer \
-  mysql:5.7 --innodb_buffer_pool_size=4G --innodb_buffer_pool_instances=4
-
-mysql -h 127.0.0.1 -uroot -p123456 -e \
-  'ALTER DATABASE authorizer CHARACTER SET utf8 COLLATE utf8_unicode_ci;'
+  mysql:5.7 \
+  --character-set-server=utf8 \
+  --collation-server=utf8_unicode_ci \
+  --innodb_buffer_pool_size=4G \
+  --innodb_buffer_pool_instances=4
 ```
 
 Run the schema migrations:
