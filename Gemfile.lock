@@ -1,6 +1,7 @@
 GEM
   remote: https://rubygems.org/
   specs:
+    coderay (1.1.2)
     httparty (0.15.5)
       multi_xml (>= 0.5.2)
     little-plugger (1.1.4)
@@ -10,8 +11,12 @@ GEM
     marc (1.0.0)
       scrub_rb (>= 1.0.1, < 2)
       unf
+    method_source (0.8.2)
     multi_json (1.12.1)
     multi_xml (0.6.0)
+    pry (0.11.0)
+      coderay (~> 1.1.0)
+      method_source (~> 0.8.1)
     rake (12.0.0)
     scrub_rb (1.0.1)
     sequel (4.48.0)
@@ -27,6 +32,7 @@ DEPENDENCIES
   httparty
   logging
   marc
+  pry
   rake
   sequel
   sqlite3

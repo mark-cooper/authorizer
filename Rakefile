@@ -1,24 +1,5 @@
 #!/usr/bin/env ruby
-require 'logging'
-require 'sequel'
-
-# TODO: config file
-Sequel::Model.db = Sequel.connect('sqlite://db/authorizer.db')
-
-require_relative 'app/models/auth'
-require_relative 'app/models/bib'
-require_relative 'lib/loc/authority'
-require_relative 'lib/marc/datafield'
-require_relative 'lib/marc/directory_reader'
-require_relative 'lib/marc/file_reader'
-require_relative 'lib/marc/tag'
-
-LOG_FILE = 'authorizer.log'.freeze
-Logging.logger.root.add_appenders([
-  Logging.appenders.stdout,
-  Logging.appenders.file(LOG_FILE)
-])
-Logging.logger.root.level = :debug
+require_relative 'authorizer'
 
 namespace :authorizer do
   # logger for rake tasks
@@ -34,7 +15,7 @@ namespace :authorizer do
       puts directory
     end
 
-    # rake authorizer:authorities:lookup
+    # bundle exec rake authorizer:authorities:lookup
     desc 'Lookup authorities'
     task :lookup do |_t, args|
       # TODO: Getty AAT
@@ -57,14 +38,14 @@ namespace :authorizer do
       end
     end
 
-    # rake authorizer:authorities:search_name['Obama\, Barack']
-    # rake authorizer:authorities:search_name['Bishop\, Elizabeth\,1911-1979']
+    # bundle exec rake authorizer:authorities:search_name['Obama\, Barack']
+    # bundle exec rake authorizer:authorities:search_name['Bishop\, Elizabeth\,1911-1979']
     desc 'Search for a subject authority record'
     task :search_name, [:term] do |_t, args|
       puts LOCAuthority::Name.search(args[:term])
     end
 
-    # rake authorizer:authorities:search_subject['Cyberpunk fiction']
+    # bundle exec rake authorizer:authorities:search_subject['Cyberpunk fiction']
     desc 'Search for a subject authority record'
     task :search_subject, [:term] do |_t, args|
       puts LOCAuthority::Subject.search(args[:term])
@@ -74,7 +55,7 @@ namespace :authorizer do
   namespace :db do
     # TODO: rake authorizer:db:sweep (remove auths not associated with anything)
 
-    # rake authorizer:db:populate_from_dir
+    # bundle exec rake authorizer:db:populate_from_dir
     desc 'Add headings from mrc in directory to database'
     task :populate_from_dir, [:directory] do |_t, args|
       directory = args[:directory] || 'data/bib'
@@ -88,7 +69,7 @@ namespace :authorizer do
       logger.debug "Bib records read: #{total}"
     end
 
-    # rake authorizer:db:populate_from_file
+    # bundle exec rake authorizer:db:populate_from_file
     desc 'Add headings from mrc in file to database'
     task :populate_from_file, [:file] do |_t, args|
       file = args[:file] || 'data/bib/authorizer.mrc'
@@ -102,6 +83,7 @@ namespace :authorizer do
       logger.debug "Bib records read: #{total}"
     end
 
+    # bundle exec rake authorizer:db:process_record[record]
     desc 'Process marc into bib and auth records'
     task :process_record, [:record] do |_t, args|
       record     = args[:record]
