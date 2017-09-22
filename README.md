@@ -32,15 +32,15 @@ bundle exec sequel -m db/migrations -M 0 'sqlite://db/authorizer.db'
 ## Loading data
 
 ```bash
-rake authorizer:db:populate_from_file
-rake authorizer:authorities:lookup
+bundle exec rake authorizer:db:populate_from_file # requires data/bib/authorizer.mrc
+bundle exec rake authorizer:authorities:lookup # generate lookup urls if required
 ```
 
 ## Tasks
 
 ```bash
-rake authorizer:authorities:search_name['Obama\, Barack']
-rake authorizer:authorities:search_subject['Cyberpunk fiction']
+bundle exec rake authorizer:authorities:search_name['Obama\, Barack']
+bundle exec rake authorizer:authorities:search_subject['Cyberpunk fiction']
 ```
 
 ## Queries
@@ -67,6 +67,7 @@ By bib:
 ```sql
 SELECT
   b.bib_number,
+  b.title,
   a.tag,
   a.datafield,
   a.heading,
