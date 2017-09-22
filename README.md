@@ -1,6 +1,6 @@
 # authorizer
 
-Match bib record auth headings to auth record using LD dumps.
+Download authority records matched to bib auth heading subfield $0.
 
 ## Getting started
 
@@ -39,6 +39,7 @@ bundle exec rake authorizer:authorities:lookup # generate lookup urls if require
 ## Tasks
 
 ```bash
+bundle exec rake authorizer:authorities:download:single[http://vocab.getty.edu/aat/300028689,AAT] | xmllint --format -
 bundle exec rake authorizer:authorities:search_name['Obama\, Barack']
 bundle exec rake authorizer:authorities:search_subject['Cyberpunk fiction']
 ```

@@ -7,12 +7,15 @@ namespace :authorizer do
   logger.add_appenders([Logging.appenders.file(LOG_FILE)])
 
   namespace :authorities do
-    desc 'Download authority records'
-    task :download, [:directory] do |_t, args|
-      directory = args[:directory] || 'data/auth'
-      # TODO: check directory
-      # TODO: use auth records with uri in db
-      puts directory
+    namespace :download do
+      # bundle exec rake authorizer:authorities:download:single[uri,LOC]
+      desc 'Download single authority record'
+      task :single, [:uri, :type] do |_t, args|
+        uri    = args[:uri]
+        type   = args[:type] || 'LOC'
+        result = type == 'LOC' ? LOCDownload.get(uri) : AATDownload.get(uri)
+        puts result
+      end
     end
 
     # bundle exec rake authorizer:authorities:lookup
