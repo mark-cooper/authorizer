@@ -11,11 +11,13 @@ Sequel.migration do
       Integer :matches
       String  :uri
       Boolean :ils, default: false
+      String  :record, text: true
     end
 
     create_table(:bibs) do
       primary_key :id
       String :bib_number, null: false, unique: true
+      String :title, null: false
     end
 
     create_table(:auths_bibs) do

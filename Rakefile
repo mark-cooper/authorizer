@@ -109,7 +109,10 @@ namespace :authorizer do
       bib_record = Bib.where(bib_number: bib_number).first
       datafields = []
       unless bib_record
-        bib_record = Bib.new(bib_number: bib_number).save
+        bib_record = Bib.new(
+          bib_number: bib_number,
+          title:      record['245'].value,
+        ).save
         logger.debug("Created bib with number: #{bib_number}")
       end
 
