@@ -1,3 +1,3 @@
-class Auth < Sequel::Model
+class Auth < Sequel::Model(:auths)
   many_to_many :bibs
 end

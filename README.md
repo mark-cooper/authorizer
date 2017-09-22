@@ -8,7 +8,7 @@ Create input / out directories:
 
 ```bash
 mkdir -p data/auth
-mkdir -p data/bib # copy mrc records here
+mkdir -p data/bib # copy mrc record/s here
 ```
 
 Install the required gems:
@@ -17,42 +17,22 @@ Install the required gems:
 bundle install
 ```
 
-Create a MySQL database:
-
-```bash
-docker run -d \
-  -p 3306:3306 \
-  --name mysql \
-  -e MYSQL_ROOT_PASSWORD=123456 \
-  -e MYSQL_DATABASE=authorizer \
-  -e MYSQL_USER=authorizer \
-  -e MYSQL_PASSWORD=authorizer \
-  mysql:5.7 \
-  --character-set-server=utf8 \
-  --collation-server=utf8_unicode_ci \
-  --innodb_buffer_pool_size=4G \
-  --innodb_buffer_pool_instances=4
-```
-
 Run the schema migrations:
 
 ```bash
-bundle exec sequel -m db/migrations \
-  "mysql2://127.0.0.1/authorizer?user=authorizer&password=authorizer"
+bundle exec sequel -m db/migrations 'sqlite://db/authorizer.db'
 ```
 
 To reset the migrations (then re-run the migration command):
 
 ```
-bundle exec sequel -m db/migrations \
-  -M 0 \
-  "mysql2://127.0.0.1/authorizer?user=authorizer&password=authorizer"
+bundle exec sequel -m db/migrations -M 0 'sqlite://db/authorizer.db'
 ```
 
 ## Loading data
 
 ```bash
-rake authorizer:db:populate
+rake authorizer:db:populate_from_file
 rake authorizer:authorities:lookup
 ```
 
@@ -86,9 +66,9 @@ By bib:
 
 ```sql
 SELECT
-	b.bib_number,
+  b.bib_number,
   a.tag,
-	a.datafield,
+  a.datafield,
   a.heading,
   a.type,
   a.source,

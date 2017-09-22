@@ -1,23 +1,16 @@
-
 #!/usr/bin/env ruby
 require 'logging'
 require 'sequel'
 
 # TODO: config file
-# TODO: refactor db connection
-Sequel::Model.db = Sequel.connect(
-  adapter: 'mysql2',
-  host: '127.0.0.1',
-  database: 'authorizer',
-  user: 'authorizer',
-  password: 'authorizer'
-)
+Sequel::Model.db = Sequel.connect('sqlite://db/authorizer.db')
 
 require_relative 'app/models/auth'
 require_relative 'app/models/bib'
 require_relative 'lib/loc/authority'
 require_relative 'lib/marc/datafield'
 require_relative 'lib/marc/directory_reader'
+require_relative 'lib/marc/file_reader'
 require_relative 'lib/marc/tag'
 
 LOG_FILE = 'authorizer.log'.freeze
@@ -82,7 +75,7 @@ namespace :authorizer do
     # TODO: rake authorizer:db:sweep (remove auths not associated with anything)
 
     # rake authorizer:db:populate_from_dir
-    desc 'Add headings from mrc to database'
+    desc 'Add headings from mrc in directory to database'
     task :populate_from_dir, [:directory] do |_t, args|
       directory = args[:directory] || 'data/bib'
       # TODO: check directory
@@ -96,14 +89,14 @@ namespace :authorizer do
     end
 
     # rake authorizer:db:populate_from_file
-    desc 'Add headings from mrc to database'
+    desc 'Add headings from mrc in file to database'
     task :populate_from_file, [:file] do |_t, args|
-      directory = args[:file] || 'data/bib/authorizer.mrc'
+      file = args[:file] || 'data/bib/authorizer.mrc'
       # TODO: check file
       total = 0
       MARC::FileReader.new(file, :mrc).each_record do |record, count|
-        Rake::Task['db:process_record'].invoke(record)
-        Rake::Task['db:process_record'].reenable
+        Rake::Task['authorizer:db:process_record'].invoke(record)
+        Rake::Task['authorizer:db:process_record'].reenable
         total = count
       end
       logger.debug "Bib records read: #{total}"
