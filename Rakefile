@@ -18,9 +18,9 @@ namespace :authorizer do
       end
     end
 
-    # bundle exec rake authorizer:authorities:lookup
-    desc 'Lookup authorities'
-    task :lookup do |_t, args|
+    # bundle exec rake authorizer:authorities:query_uri
+    desc 'Set the query uri to use for auth record lookups'
+    task :query_uri do |_t, args|
       # TODO: Getty AAT
       Auth.where(uri: nil).each do |auth|
         next if auth[:source] == 'aat'
@@ -37,7 +37,6 @@ namespace :authorizer do
             logger.error ex.message
           end
         end
-        # TODO: lookup auth records w/o uri / identifier if matches nil
       end
     end
 
@@ -89,61 +88,13 @@ namespace :authorizer do
     # bundle exec rake authorizer:db:process_record[record]
     desc 'Process marc into bib and auth records'
     task :process_record, [:record] do |_t, args|
-      record     = args[:record]
-      bib_number = record['001'].value
-      bib_record = Bib.where(bib_number: bib_number).first
-      datafields = []
-      unless bib_record
-        bib_record = Bib.new(
-          bib_number: bib_number,
-          title:      record['245'].value,
-        ).save
-        logger.debug("Created bib with number: #{bib_number}")
-      end
-
-      # TODO: memberOf for search
-      record.each_by_tag(MARC::Tag::AUTHS) do |auth|
-        type    = MARC::Tag::NAMES.include?(auth.tag) ? 'name' : 'subject'
-        heading = type == 'name' ? auth.to_query_str(',') : auth.to_query_str
-        source  = auth['2']
-        uri     = auth['0']
-        ils     = uri ? true : false
-
-        data = {
-          tag: auth.tag,
-          datafield: auth.to_s,
-          heading: heading,
-          type: type,
-          source: source,
-          uri: uri,
-          ils: ils
-        }
-        datafields << data[:datafield]
-
-        auth_record = Auth.where(datafield: data[:datafield]).first
-        if auth_record
-          bib_has_auth = bib_record.auths.find do |a|
-            a[:datafield] == auth_record[:datafield]
-          end
-          bib_record.add_auth auth_record unless bib_has_auth
-          if uri && auth_record.uri != uri
-            auth_record.uri = uri
-            auth_record.save
-            logger.debug("Updated uri for datafield #{data[:datafield]}")
-          end
-        else
-          auth_record = Auth.new(data).save
-          bib_record.add_auth auth_record
-          logger.debug("Created auth with datafield: #{data[:datafield]}")
-        end
-      end
-
-      # remove any auths not in datafields ('cus record was updated)
-      bib_record.auths.each do |auth|
-        unless datafields.include?(auth[:datafield])
-          bib_record.remove_auth auth
-        end
-      end
+      record    = args[:record]
+      processor = Authorizer::RecordProcessor.new(
+        record,
+        MARC::Tag::NAMES,
+        MARC::Tag::SUBJECTS
+      )
+      processor.process
     end
   end
 end

@@ -15,6 +15,7 @@ Logging.logger.root.level = :debug
 require_relative 'app/models/auth'
 require_relative 'app/models/bib'
 require_relative 'lib/aat/download'
+require_relative 'lib/authorizer/record_processor'
 require_relative 'lib/loc/authority'
 require_relative 'lib/loc/download'
 require_relative 'lib/marc/datafield'
