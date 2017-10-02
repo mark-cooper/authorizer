@@ -17,6 +17,7 @@ GEM
     multi_xml (0.6.0)
     nokogiri (1.8.1)
       mini_portile2 (~> 2.3.0)
+    parallel (1.12.0)
     pry (0.11.0)
       coderay (~> 1.1.0)
       method_source (~> 0.8.1)
@@ -36,6 +37,7 @@ DEPENDENCIES
   logging
   marc
   nokogiri
+  parallel
   pry
   rake
   sequel

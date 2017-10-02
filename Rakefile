@@ -8,9 +8,29 @@ namespace :authorizer do
 
   namespace :authorities do
     namespace :download do
-      # bundle exec rake authorizer:authorities:download:single[uri,LOC]
-      desc 'Download single authority record'
-      task :single, [:uri, :type] do |_t, args|
+      # bundle exec rake authorizer:authorities:download:batch
+      desc 'Download all db authority records'
+      task :batch do |_t, args|
+        Auth.where(record: nil).exclude(uri: nil).each_page(100) do |batch|
+          logger.debug "Downloading batch: #{batch.inspect}"
+          Parallel.each(batch.all, in_processes: 4) do |auth|
+            # don't process unrecognized source
+            next unless auth.source.nil? or auth.source == 'aat'
+            uri = auth.uri
+            begin
+              result = auth.source.nil? ? LOCDownload.get(uri) : AATDownload.get(uri)
+              auth.record = result
+              auth.save
+            rescue Exception => ex
+              logger.error "Failed to download and save: #{uri}"
+            end
+          end
+        end
+      end
+
+      # bundle exec rake authorizer:authorities:download:debug[uri,LOC]
+      desc 'Download debug authority record'
+      task :debug, [:uri, :type] do |_t, args|
         uri    = args[:uri]
         type   = args[:type] || 'LOC'
         result = type == 'LOC' ? LOCDownload.get(uri) : AATDownload.get(uri)

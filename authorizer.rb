@@ -1,9 +1,11 @@
 require 'logging'
+require 'parallel'
 require 'pry'
 require 'sequel'
 
 # TODO: config file
 Sequel::Model.db = Sequel.connect('sqlite://db/authorizer.db')
+Sequel::Model.db.extension(:pagination)
 
 LOG_FILE = 'authorizer.log'.freeze
 Logging.logger.root.add_appenders([
