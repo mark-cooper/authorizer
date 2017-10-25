@@ -2,16 +2,17 @@ Sequel.migration do
   up do
     create_table(:auths) do
       primary_key :id
-      String  :tag, null: false
-      String  :datafield, null: false, unique: true
-      String  :type
-      String  :source
-      String  :heading, null: false
-      String  :query
-      Integer :matches
-      String  :uri
-      Boolean :ils, default: false
-      String  :record, text: true
+      String    :tag, null: false
+      String    :datafield, null: false, unique: true
+      String    :type
+      String    :source
+      String    :heading, null: false
+      String    :query
+      Integer   :matches
+      String    :uri
+      TrueClass :ils, default: 0
+      TrueClass :valid
+      String    :record, text: true
     end
 
     create_table(:bibs) do
