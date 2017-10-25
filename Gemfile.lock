@@ -2,6 +2,7 @@ GEM
   remote: https://rubygems.org/
   specs:
     coderay (1.1.2)
+    fuzzy_match (2.1.0)
     httparty (0.15.5)
       multi_xml (>= 0.5.2)
     little-plugger (1.1.4)
@@ -33,6 +34,7 @@ PLATFORMS
   ruby
 
 DEPENDENCIES
+  fuzzy_match
   httparty
   logging
   marc

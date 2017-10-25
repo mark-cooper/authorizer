@@ -2,6 +2,7 @@ require 'logging'
 require 'parallel'
 require 'pry'
 require 'sequel'
+require 'fuzzy_match'
 
 # TODO: config file
 Sequel::Model.db = Sequel.connect('sqlite://db/authorizer.db')
