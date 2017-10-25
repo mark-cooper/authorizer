@@ -9,24 +9,16 @@ namespace :authorizer do
   # bundle exec rake authorizer:report
   desc 'DB report'
   task :report do
-    report = {
-      total_bibs: 0,
-      total_auths: 0,
-      auths_with_0: 0,
-      auths_from_loc: 0,
-      auths_from_loc_dl: 0,
-      auths_from_aat: 0,
-      auths_from_aat_dl: 0,
-      auths_from_other: 0,
-    }
-    report[:total_bibs]        = Bib.count
-    report[:total_auths]       = Auth.count
-    report[:auths_with_0]      = Auth.where(ils: 1).count
-    report[:auths_from_loc]    = Auth.where(ils: 1, source: 'loc').count
-    report[:auths_from_loc_dl] = Auth.where(ils: 1, source: 'loc').exclude(record: nil).count
-    report[:auths_from_aat]    = Auth.where(ils: 1, source: 'aat').count
-    report[:auths_from_aat_dl] = Auth.where(ils: 1, source: 'aat').exclude(record: nil).count
-    report[:auths_from_other]  = Auth.where(ils: 1).exclude(source: 'loc').exclude(source: 'aat').count
+    report = {}
+    report[:total_bibs]           = Bib.count
+    report[:total_auths]          = Auth.count
+    report[:auths_with_0]         = Auth.where(ils: 1).count
+    report[:auths_from_loc]       = Auth.where(ils: 1, source: 'loc').count
+    report[:auths_from_loc_dl]    = Auth.where(ils: 1, source: 'loc').exclude(record: nil).count
+    report[:auths_from_loc_valid] = Auth.where(ils: 1, source: 'loc', valid: true).exclude(record: nil).count
+    report[:auths_from_aat]       = Auth.where(ils: 1, source: 'aat').count
+    report[:auths_from_aat_dl]    = Auth.where(ils: 1, source: 'aat').exclude(record: nil).count
+    report[:auths_from_other]     = Auth.where(ils: 1).exclude(source: 'loc').exclude(source: 'aat').count
 
     puts JSON.pretty_generate report
   end
@@ -36,14 +28,14 @@ namespace :authorizer do
       # bundle exec rake authorizer:authorities:download:batch
       desc 'Download all db authority records'
       task :batch do |_t, args|
-        Auth.where(record: nil).exclude(uri: nil).each_page(100) do |batch|
+        Auth.where(record: nil).exclude(uri: nil).exclude(source: nil).each_page(100) do |batch|
           logger.debug "Downloading batch: #{batch.inspect}"
-          Parallel.each(batch.all, in_processes: 4) do |auth|
+          Parallel.each(batch.all, in_threads: 4) do |auth|
             # don't process unrecognized source
-            next unless auth.source.nil? or auth.source == 'aat'
+            next unless auth.source == 'loc' or auth.source == 'aat'
             uri = auth.uri
             begin
-              result = auth.source.nil? ? LOCDownload.get(uri) : AATDownload.get(uri)
+              result = auth.source == 'loc' ? LOCDownload.get(uri) : AATDownload.get(uri)
               auth.record = result
               auth.save
             rescue Exception => ex
@@ -103,23 +95,36 @@ namespace :authorizer do
     task :validate_loc_heading, [:id] do |_t, args|
       id = args[:id].to_i || nil
       raise "Auth record id required" unless id
-      auth   = Auth.find(id).first
+      auth   = Auth[id]
       if auth.source == 'loc'
         record = MARC::XMLReader.new(StringIO.new(auth[:record])).first
-        unauthorized_heading = auth[:datafield].split('.')[0].strip
-        authorized_heading   = record.find_all {|f| f.tag =~ /^1../}.first.to_s.strip
-        unless unauthorized_heading == authorized_heading
+        regexp               = auth[:type] == 'name' ? /,http.*/ : /(--|http.*)/
+        # fingerprint (heading w/o delims, uri & non-word chars)
+        unauthorized_heading = auth[:heading].gsub(regexp, '').gsub(/[^[:word:]]+/, '')
+        authorized_heading   = record.find_all {|f| f.tag =~ /^1../}.first.value.gsub(/[^[:word:]]+/, '')
+        match                = FuzzyMatch.new([authorized_heading]).find(unauthorized_heading)
+        if match
+          auth.update(valid: true)
+        else
+          auth.update(valid: false)
           puts "Invalid heading for #{auth[:uri]}: \"#{unauthorized_heading}\" vs. \"#{authorized_heading}\""
         end
+        auth.save
       end
     end
 
     # bundle exec rake authorizer:authorities:validate_loc_headings
     desc 'Validate all LOC auth record headings'
     task :validate_loc_headings do
-      Auth.select(:id).where(source: 'loc').exclude(record: nil).each do |auth|
-        Rake::Task['authorizer:authorities:validate_loc_heading'].invoke(auth.id)
-        Rake::Task['authorizer:authorities:validate_loc_heading'].reenable
+      Auth.select(:id).where(source: 'loc')
+        .exclude(record: nil)
+        .exclude(valid: true)
+        .each_page(100) do |batch|
+          ids = batch.map { |b| b.id }
+          Parallel.each(ids, in_threads: 4) do |id|
+            Rake::Task['authorizer:authorities:validate_loc_heading'].invoke(id)
+            Rake::Task['authorizer:authorities:validate_loc_heading'].reenable
+          end
       end
     end
   end
@@ -136,6 +141,18 @@ namespace :authorizer do
   end
 
   namespace :db do
+    # bundle exec rake authorizer:db:dump_auth_xml
+    desc 'Dump authority records to data/xml'
+    task :dump_auth_xml, [:source] do |_t, args|
+      source = args[:source] || 'loc'
+      Auth.select(source: source)
+        .exclude(uri: nil)
+        .exclude(record: nil)
+        .each_page(100) do |batch|
+          puts batch
+      end
+    end
+
     # TODO: rake authorizer:db:sweep (remove auths not associated with anything)
 
     # bundle exec rake authorizer:db:populate_from_dir
@@ -145,8 +162,8 @@ namespace :authorizer do
       # TODO: check directory
       total = 0
       MARC::DirectoryReader.new(directory, :xml).each_record do |record, count|
-        Rake::Task['db:process_record'].invoke(record)
-        Rake::Task['db:process_record'].reenable
+        Rake::Task['authorizer:db:process_record'].invoke(record)
+        Rake::Task['authorizer:db:process_record'].reenable
         total = count
       end
       logger.debug "Bib records read: #{total}"
