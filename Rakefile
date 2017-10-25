@@ -6,6 +6,31 @@ namespace :authorizer do
   logger = Logging.logger(STDOUT)
   logger.add_appenders([Logging.appenders.file(LOG_FILE)])
 
+  # bundle exec rake authorizer:report
+  desc 'DB report'
+  task :report do
+    report = {
+      total_bibs: 0,
+      total_auths: 0,
+      auths_with_0: 0,
+      auths_from_loc: 0,
+      auths_from_loc_dl: 0,
+      auths_from_aat: 0,
+      auths_from_aat_dl: 0,
+      auths_from_other: 0,
+    }
+    report[:total_bibs]        = Bib.count
+    report[:total_auths]       = Auth.count
+    report[:auths_with_0]      = Auth.where(ils: 1).count
+    report[:auths_from_loc]    = Auth.where(ils: 1, source: nil).count
+    report[:auths_from_loc_dl] = Auth.where(ils: 1, source: nil).exclude(record: nil).count
+    report[:auths_from_aat]    = Auth.where(ils: 1, source: 'aat').count
+    report[:auths_from_aat_dl] = Auth.where(ils: 1, source: 'aat').exclude(record: nil).count
+    report[:auths_from_other]  = Auth.where(ils: 1).exclude(source: nil).exclude(source: 'aat').count
+
+    puts JSON.pretty_generate report
+  end
+
   namespace :authorities do
     namespace :download do
       # bundle exec rake authorizer:authorities:download:batch
@@ -71,6 +96,33 @@ namespace :authorizer do
     desc 'Search for a subject authority record'
     task :search_subject, [:term] do |_t, args|
       puts LOCAuthority::Subject.search(args[:term])
+    end
+
+    # bundle exec rake authorizer:authorities:validate_loc_heading[1]
+    desc 'Validate that LOC auth record heading matches authorized form'
+    task :validate_loc_heading, [:id] do |_t, args|
+      id = args[:id].to_i || nil
+      raise "Auth record id required" unless id
+      auth   = Auth.find(id).first
+      record = MARC::XMLReader.new(StringIO.new(auth[:record])).first
+      unauthorized_heading = auth[:datafield].split('.')[0].strip
+      authorized_heading   = record.find_all {|f| f.tag =~ /^1../}.first.to_s.strip
+      unless unauthorized_heading == authorized_heading
+        puts "Invalid heading for #{auth[:uri]}: \"#{unauthorized_heading}\" vs. \"#{authorized_heading}\""
+      end
+    end
+
+    # bundle exec rake authorizer:authorities:validate_loc_headings
+  end
+
+  namespace :bib do
+    # bundle exec rake authorizer:bib:print[123456]
+    desc 'Print marc record as xml to console'
+    task :print, [:bib_number] do |_t, args|
+      bib_number = args[:bib_number] || nil
+      raise "Bib no. required!" unless bib_number
+      bib = Bib.where(bib_number: bib_number).first
+      puts bib.inspect
     end
   end
 
