@@ -81,7 +81,8 @@ module Authorizer
       # remove any auths not in datafields ('cus record was updated)
       bib_record.auths.each do |auth|
         unless datafields.include?(auth[:datafield])
-          bib_record.remove_auth auth
+          @logger.debug("Removing unused authority for #{bib_record.id}: #{auth.inspect}")
+          auth.remove_bib bib_record
         end
       end
     end
