@@ -34,9 +34,10 @@ bundle exec sequel -m db/migrations -M 0 'sqlite://db/authorizer.db'
 ```bash
 bundle exec rake authorizer:db:populate_from_file # requires data/bib/authorizer.mrc
 bundle exec rake authorizer:authorities:lookup # generate lookup urls if required
+bundle exec rake authorizer:authorities:download:batch
 ```
 
-## Tasks
+## Other tasks
 
 ```bash
 bundle exec rake authorizer:authorities:download:single[http://vocab.getty.edu/aat/300028689,AAT] | xmllint --format -
