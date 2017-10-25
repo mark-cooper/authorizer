@@ -26,6 +26,9 @@ module Authorizer
         uri     = auth['0']
         ils     = uri ? true : false
 
+        # update source if not set but we have uri and matches loc
+        source  = 'loc' if !source and uri =~ /id\.loc\.gov/
+
         data = {
           tag: auth.tag,
           datafield: auth.to_s,

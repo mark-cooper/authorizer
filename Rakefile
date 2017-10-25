@@ -22,11 +22,11 @@ namespace :authorizer do
     report[:total_bibs]        = Bib.count
     report[:total_auths]       = Auth.count
     report[:auths_with_0]      = Auth.where(ils: 1).count
-    report[:auths_from_loc]    = Auth.where(ils: 1, source: nil).count
-    report[:auths_from_loc_dl] = Auth.where(ils: 1, source: nil).exclude(record: nil).count
+    report[:auths_from_loc]    = Auth.where(ils: 1, source: 'loc').count
+    report[:auths_from_loc_dl] = Auth.where(ils: 1, source: 'loc').exclude(record: nil).count
     report[:auths_from_aat]    = Auth.where(ils: 1, source: 'aat').count
     report[:auths_from_aat_dl] = Auth.where(ils: 1, source: 'aat').exclude(record: nil).count
-    report[:auths_from_other]  = Auth.where(ils: 1).exclude(source: nil).exclude(source: 'aat').count
+    report[:auths_from_other]  = Auth.where(ils: 1).exclude(source: 'loc').exclude(source: 'aat').count
 
     puts JSON.pretty_generate report
   end
@@ -104,15 +104,24 @@ namespace :authorizer do
       id = args[:id].to_i || nil
       raise "Auth record id required" unless id
       auth   = Auth.find(id).first
-      record = MARC::XMLReader.new(StringIO.new(auth[:record])).first
-      unauthorized_heading = auth[:datafield].split('.')[0].strip
-      authorized_heading   = record.find_all {|f| f.tag =~ /^1../}.first.to_s.strip
-      unless unauthorized_heading == authorized_heading
-        puts "Invalid heading for #{auth[:uri]}: \"#{unauthorized_heading}\" vs. \"#{authorized_heading}\""
+      if auth.source == 'loc'
+        record = MARC::XMLReader.new(StringIO.new(auth[:record])).first
+        unauthorized_heading = auth[:datafield].split('.')[0].strip
+        authorized_heading   = record.find_all {|f| f.tag =~ /^1../}.first.to_s.strip
+        unless unauthorized_heading == authorized_heading
+          puts "Invalid heading for #{auth[:uri]}: \"#{unauthorized_heading}\" vs. \"#{authorized_heading}\""
+        end
       end
     end
 
     # bundle exec rake authorizer:authorities:validate_loc_headings
+    desc 'Validate all LOC auth record headings'
+    task :validate_loc_headings do
+      Auth.select(:id).where(source: 'loc').exclude(record: nil).each do |auth|
+        Rake::Task['authorizer:authorities:validate_loc_heading'].invoke(auth.id)
+        Rake::Task['authorizer:authorities:validate_loc_heading'].reenable
+      end
+    end
   end
 
   namespace :bib do
