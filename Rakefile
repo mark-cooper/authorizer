@@ -144,12 +144,26 @@ namespace :authorizer do
     # bundle exec rake authorizer:db:dump_auth_xml
     desc 'Dump authority records to data/xml'
     task :dump_auth_xml, [:source] do |_t, args|
-      source = args[:source] || 'loc'
-      Auth.select(source: source)
+      source    = args[:source] || 'loc'
+      base_path = File.join("data", "xml", source)
+      # use to avoid writing same record multiple times (needed if add parallel)
+      seen      = Set.new
+      FileUtils.mkdir_p base_path
+      Auth.where(source: source)
         .exclude(uri: nil)
         .exclude(record: nil)
-        .each_page(100) do |batch|
-          puts batch
+        .select(:uri, :identifier, :record)
+        .each_page(1000) do |batch|
+          current_page = batch.current_page.to_s
+          puts "Dumping batch:\t#{current_page}"
+          batch.all.each do |auth|
+            path = File.join(base_path, current_page)
+            FileUtils.mkdir_p path
+            id   = auth[:identifier] ? auth[:identifier] : URI.parse(auth[:uri]).path.split('/').last
+            next if seen.include? id
+            File.open(File.join(path, "#{id}.xml"), 'w') { |f| f.write auth[:record] }
+            seen << id
+          end
       end
     end
 
