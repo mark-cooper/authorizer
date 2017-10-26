@@ -29,11 +29,16 @@ To reset the migrations (then re-run the migration command):
 bundle exec sequel -m db/migrations -M 0 'sqlite://db/authorizer.db'
 ```
 
+To try things out in an IRB session:
+
+```
+bundle exec sequel sqlite://db/authorizer.db -L app/models/
+```
+
 ## Loading data
 
 ```bash
 bundle exec rake authorizer:db:populate_from_file # requires data/bib/authorizer.mrc
-bundle exec rake authorizer:authorities:lookup # generate lookup urls if required
 bundle exec rake authorizer:authorities:download:batch
 ```
 
