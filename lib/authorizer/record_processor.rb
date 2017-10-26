@@ -20,11 +20,12 @@ module Authorizer
       bib_record = get_or_create_bib(bib_number, title)
 
       record.each_by_tag(auth_tags) do |auth|
-        type    = name_tags.include?(auth.tag) ? 'name' : 'subject'
-        heading = type == 'name' ? auth.to_query_str(',') : auth.to_query_str
-        source  = auth['2']
-        uri     = auth['0']
-        ils     = uri ? true : false
+        type       = name_tags.include?(auth.tag) ? 'name' : 'subject'
+        heading    = type == 'name' ? auth.to_query_str(',') : auth.to_query_str
+        source     = auth['2']
+        uri        = auth['0']
+        identifier = uri ? URI.parse(uri).path.split('/').last : nil
+        ils        = uri ? true : false
 
         # update source if not set but we have uri and matches loc
         source  = 'loc' if !source and uri =~ /id\.loc\.gov/
@@ -36,6 +37,7 @@ module Authorizer
           type: type,
           source: source,
           uri: uri,
+          identifier: identifier,
           ils: ils
         }
         datafields << data[:datafield]
@@ -56,7 +58,8 @@ module Authorizer
         bib_record.add_auth auth_record unless bib_has_auth
         uri = data[:uri]
         if uri && auth_record.uri != uri
-          auth_record.uri = uri
+          auth_record.uri        = uri
+          auth_record.identifier = data[:identifier]
           auth_record.save
           @logger.debug("Updated uri for datafield #{data[:datafield]}")
         end

@@ -10,6 +10,7 @@ Sequel.migration do
       String    :query
       Integer   :matches
       String    :uri
+      String    :identifier
       TrueClass :ils, default: 0
       TrueClass :valid
       String    :record, text: true
