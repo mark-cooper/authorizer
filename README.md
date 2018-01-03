@@ -54,6 +54,15 @@ bundle exec rake authorizer:authorities:search_name['Obama\, Barack']
 bundle exec rake authorizer:authorities:search_subject['Cyberpunk fiction']
 ```
 
+## Preparing dumped authorities for import
+
+For use with [aspace-importer](https://github.com/lyrasis/aspace-importer.git):
+
+```bash
+mkdir -p /tmp/aspace/import
+for file in ./data/auth/loc/*/*.xml; do cp "$file" /tmp/aspace/import/; done
+```
+
 ## Queries
 
 Auths only:
