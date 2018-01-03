@@ -1,5 +1,6 @@
 data/
 db/authorizer.db
 vendor/
+.DS_Store
 authorizer.log
 *.swp
