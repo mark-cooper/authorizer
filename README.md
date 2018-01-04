@@ -61,7 +61,19 @@ For use with [aspace-importer](https://github.com/lyrasis/aspace-importer.git):
 ```bash
 mkdir -p /tmp/aspace/import
 for file in ./data/auth/loc/*/*.xml; do cp "$file" /tmp/aspace/import/; done
+
+# removing
+for file in /tmp/aspace/import/*.xml; do rm "$file"; done
+for file in /tmp/aspace/json/*.json; do rm "$file"; done
 ```
+
+There's a helper for testing with ArchivesSpace:
+
+```bash
+./archivesspace.sh
+```
+
+Note: requires Docker and MySQL CLI tools.
 
 ## Queries
 

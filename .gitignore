@@ -1,5 +1,6 @@
 data/
 db/authorizer.db
+plugins/
 vendor/
 .DS_Store
 authorizer.log
