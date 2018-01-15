@@ -4,4 +4,5 @@ plugins/
 vendor/
 .DS_Store
 authorizer.log
+*.db-journal
 *.swp
