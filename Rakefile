@@ -28,20 +28,25 @@ namespace :authorizer do
       # bundle exec rake authorizer:authorities:download:batch
       desc 'Download all db authority records'
       task :batch do |_t, args|
-        Auth.where(record: nil).exclude(uri: nil).exclude(source: nil).each_page(100) do |batch|
-          logger.debug "Downloading batch: #{batch.inspect}"
-          Parallel.each(batch.all, in_threads: 4) do |auth|
-            # don't process unrecognized source
-            next unless auth.source == 'loc' or auth.source == 'aat'
-            uri = auth.uri
-            begin
-              result = auth.source == 'loc' ? LOCDownload.get(uri) : AATDownload.get(uri)
-              auth.record = result
-              auth.save
-            rescue Exception => ex
-              logger.error "Failed to download and save: #{uri}"
+        puts "Downloading authority records: #{Time.now}"
+        loop do
+          Auth.where(record: nil).exclude(uri: nil).exclude(source: nil).each_page(100) do |batch|
+            logger.debug "Downloading batch: #{batch.inspect}"
+            Parallel.each(batch.all, in_threads: 4) do |auth|
+              # don't process unrecognized source
+              next unless auth.source == 'loc' or auth.source == 'aat'
+              uri = auth.uri
+              begin
+                result = auth.source == 'loc' ? LOCDownload.get(uri) : AATDownload.get(uri)
+                auth.record = result
+                auth.save
+              rescue Exception => ex
+                logger.error "Failed to download and save: #{uri}"
+              end
             end
           end
+          puts "Batch processed, use [Ctrl-c] to exit or resume in 5s: #{Time.now}"
+          sleep 5
         end
       end
 
@@ -102,8 +107,7 @@ namespace :authorizer do
         # fingerprint (heading w/o delims, uri & non-word chars)
         unauthorized_heading = auth[:heading].gsub(regexp, '').gsub(/[^[:word:]]+/, '')
         authorized_heading   = record.find_all {|f| f.tag =~ /^1../}.first.value.gsub(/[^[:word:]]+/, '')
-        match                = FuzzyMatch.new([authorized_heading]).find(unauthorized_heading)
-        if match
+        if unauthorized_heading.unicode_normalize == authorized_heading.unicode_normalize
           auth.update(valid: true)
         else
           auth.update(valid: false)
@@ -116,15 +120,21 @@ namespace :authorizer do
     # bundle exec rake authorizer:authorities:validate_loc_headings
     desc 'Validate all LOC auth record headings'
     task :validate_loc_headings do
-      Auth.select(:id).where(source: 'loc')
-        .exclude(record: nil)
-        .exclude(valid: true)
-        .each_page(100) do |batch|
-          ids = batch.map { |b| b.id }
-          Parallel.each(ids, in_threads: 4) do |id|
-            Rake::Task['authorizer:authorities:validate_loc_heading'].invoke(id)
-            Rake::Task['authorizer:authorities:validate_loc_heading'].reenable
-          end
+      loop do
+        puts "Validating LOC headings: #{Time.now}"
+        Auth.select(:id).where(source: 'loc')
+          .exclude(record: nil)
+          .exclude(valid: true)
+          .each_page(100) do |batch|
+            ids = batch.map { |b| b.id }
+            logger.debug "Validating batch: #{batch.inspect}"
+            Parallel.each(ids, in_threads: 4) do |id|
+              Rake::Task['authorizer:authorities:validate_loc_heading'].invoke(id)
+              Rake::Task['authorizer:authorities:validate_loc_heading'].reenable
+            end
+        end
+        puts "Group processed, use [Ctrl-c] to exit or resume in 5s: #{Time.now}"
+        sleep 5
       end
     end
   end
