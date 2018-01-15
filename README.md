@@ -117,4 +117,13 @@ ORDER BY b.bib_number, a.tag, a.source, a.heading
 ;
 ```
 
+Some counts:
+
+```sql
+SELECT COUNT(*) FROM auths WHERE uri IS NOT NULL;
+SELECT COUNT(DISTINCT(uri)) FROM auths WHERE uri IS NOT NULL;
+SELECT COUNT(DISTINCT(uri)) FROM auths WHERE uri IS NOT NULL and record IS NOT NULL;
+SELECT * FROM auths WHERE uri IS NOT NULL and record IS NULL;
+```
+
 ---
