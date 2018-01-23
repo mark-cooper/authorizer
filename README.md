@@ -40,8 +40,11 @@ bundle exec sequel sqlite://db/authorizer.db -L app/models/
 ```bash
 bundle exec rake authorizer:db:populate_from_file # requires data/bib/authorizer.mrc
 bundle exec rake authorizer:authorities:download:batch
+bundle exec rake authorizer:db:generate_stub_records
 bundle exec rake authorizer:authorities:validate_loc_headings
-bundle exec rake authorizer:db:dump_auth_xml
+bundle exec rake authorizer:db:dump_auth_xml['loc']
+bundle exec rake authorizer:db:dump_auth_xml['aat']
+bundle exec rake authorizer:db:dump_auth_xml['dts']
 # TODO: CSV - bib_number, tag, datafield, identifier, uri
 bundle exec rake authorizer:authorities:summary
 ```

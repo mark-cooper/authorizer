@@ -160,7 +160,6 @@ namespace :authorizer do
       seen      = Set.new
       FileUtils.mkdir_p base_path
       Auth.where(source: source)
-        .exclude(uri: nil)
         .exclude(record: nil)
         .select(:uri, :identifier, :record)
         .each_page(1000) do |batch|
@@ -178,6 +177,37 @@ namespace :authorizer do
     end
 
     # TODO: rake authorizer:db:sweep (remove auths not associated with anything)
+
+    # bundle exec rake authorizer:db:generate_stub_records
+    desc 'Create stub records for auths without a uri'
+    task :generate_stub_records do
+      Auth.where(uri: nil)
+        .each_page(1000) do |batch|
+          current_page = batch.current_page.to_s
+          puts "Processing batch:\t#{current_page}"
+          batch.all.each do |auth|
+            # id on the heading so we don't duplicate on import
+            heading  = auth.heading
+            fake_id  = "dts_#{Digest::SHA1.hexdigest(heading)}"
+            m        = MARC::Record.new
+            m.leader = "00000nz  a2200000oi 4500"
+            m << MARC::ControlField.new('001', fake_id)
+
+            df   = auth.datafield
+            tag  = df[0..2]
+            inds = df[4..5]
+            subs = df[7..-1]
+            subs = subs.split('$').delete_if(&:empty?).map do |s|
+              [ s[0..1].strip, s[2..-1].strip ]
+            end
+            m << MARC::DataField.new(tag, inds[0], inds[1], *subs)
+            auth.identifier = fake_id
+            auth.record     = m.to_xml.to_s
+            auth.source     = 'dts'
+            auth.save
+        end
+      end
+    end
 
     # bundle exec rake authorizer:db:populate_from_dir
     desc 'Add headings from mrc in directory to database'
