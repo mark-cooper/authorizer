@@ -117,6 +117,49 @@ namespace :authorizer do
       end
     end
 
+    # bundle exec rake authorizer:authorities:summary
+    desc 'Create authorizer summary csv'
+    task :summary do
+      attributes = %w{bib_number tag datafield identifier uri type agent_type agent_role}
+      agent_type_map = {
+        '100' => 'person',
+        '110' => 'corporate_entity',
+        '111' => 'family',
+        '600' => 'person',
+        '610' => 'corporate_entity',
+        '611' => 'family',
+      }
+
+      data = []
+      puts "Collecting data for CSV\t#{Time.now}"
+      Bib.order(:id).each_page(100) do |batch|
+        current_page = batch.current_page.to_s
+        puts "Generating summary:\t#{current_page}"
+        batch.all.each do |bib|
+          bib.auths_dataset.select(:tag, :datafield, :identifier, :uri).each do |auth|
+            row_data = { bib_number: bib.bib_number }
+            row_data[:tag]        = auth.tag
+            row_data[:datafield]  = auth.datafield
+            row_data[:identifier] = auth.identifier
+            row_data[:uri]        = auth.uri
+            row_data[:type]       = auth.tag =~ /^65/ ? 'subject' : 'agent'
+            row_data[:agent_type] = agent_type_map.fetch(auth.tag, '')
+            row_data[:agent_role] = auth.tag =~ /^1/  ? 'creator' : 'subject'
+            data << row_data
+          end
+        end
+      end
+      puts "Generating CSV\t#{Time.now}"
+      csv = CSV.generate(headers: true) do |csv|
+        csv << attributes
+        data.each do |row|
+          csv << attributes.map{ |attr| row[attr.to_sym] }
+        end
+      end
+      puts "Writing CSV to authorizer.csv\t#{Time.now}"
+      File.open('authorizer.csv', 'w') { |f| f.write csv }
+    end
+
     # bundle exec rake authorizer:authorities:validate_loc_headings
     desc 'Validate all LOC auth record headings'
     task :validate_loc_headings do

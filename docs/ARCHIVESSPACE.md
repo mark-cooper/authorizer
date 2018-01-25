@@ -90,4 +90,88 @@ INSERT INTO archivesspace.subject_rlshp (
 );
 ```
 
+Integrated / portable insert query:
+
+```sql
+-- ACCESSION AGENT INSERT
+INSERT INTO linked_agents_rlshp
+SELECT
+  udef.accession_id,
+  name_agent.agent__AGENT_TYPE__id,
+  0,
+  'admin',
+  'admin',
+  NOW(),
+  NOW(),
+  NOW(),
+  ev.value,
+  0
+FROM user_defined udef
+JOIN name__AGENT_TYPE__id name_agent ON name_agent.authority_id = '__IDENTIFIER__'
+JOIN enumeration_value ev ON ev.value = '__AGENT_ROLE__'
+JOIN enumeration e ON ev.enumeration_id = e.id
+WHERE udef.accession_id IS NOT NULL
+AND   udef.string_2 IS NOT NULL
+AND   udef.string_2 = '__BIB_NUMBER__'
+AND   e.name = 'linked_agent_role'
+AND   name_agent.id IS NOT NULL;
+
+-- RESOURCE AGENT INSERT
+INSERT INTO linked_agents_rlshp
+SELECT
+  udef.resource_id,
+  name_agent.agent__AGENT_TYPE__id,
+  0,
+  'admin',
+  'admin',
+  NOW(),
+  NOW(),
+  NOW(),
+  ev.value,
+  0
+FROM user_defined udef
+JOIN name__AGENT_TYPE__id name_agent ON name_agent.authority_id = '__IDENTIFIER__'
+JOIN enumeration_value ev ON ev.value = '__AGENT_ROLE__'
+JOIN enumeration e ON ev.enumeration_id = e.id
+WHERE udef.resource_id IS NOT NULL
+AND   udef.string_2 IS NOT NULL
+AND   udef.string_2 = '__BIB_NUMBER__'
+AND   e.name = 'linked_agent_role'
+AND   name_agent.id IS NOT NULL;
+
+-- ACCESSION SUBJECT INSERT
+INSERT INTO subject_rlshp (
+	udef.accession_id,
+  s.id,
+  0,
+  'admin',
+  'admin',
+  NOW(),
+  NOW(),
+  0
+FROM user_defined udef
+JOIN subject s ON s.authority_id = '__IDENTIFIER__'
+WHERE udef.accession_id IS NOT NULL
+AND   udef.string_2 IS NOT NULL
+AND   udef.string_2 = '__BIB_NUMBER__'
+AND   s.id IS NOT NULL;
+
+-- RESOURCE SUBJECT INSERT
+INSERT INTO subject_rlshp (
+	udef.resource_id,
+  s.id,
+  0,
+  'admin',
+  'admin',
+  NOW(),
+  NOW(),
+  0
+FROM user_defined udef
+JOIN subject s ON s.authority_id = '__IDENTIFIER__'
+WHERE udef.resource_id IS NOT NULL
+AND   udef.string_2 IS NOT NULL
+AND   udef.string_2 = '__BIB_NUMBER__'
+AND   s.id IS NOT NULL;
+```
+
 ---
