@@ -1,0 +1,16 @@
+INSERT INTO subject_rlshp
+SELECT
+	udef.resource_id,
+  s.id,
+  0,
+  'admin',
+  'admin',
+  NOW(),
+  NOW(),
+  0
+FROM user_defined udef
+JOIN subject s ON s.authority_id = '<%= data["identifier"] %>'
+WHERE udef.resource_id IS NOT NULL
+AND   udef.string_2 IS NOT NULL
+AND   udef.string_2 = '<%= data["bib_number"] %>'
+AND   s.id IS NOT NULL;

@@ -117,6 +117,22 @@ namespace :authorizer do
       end
     end
 
+    # bundle exec rake authorizer:authorities:as_sql
+    desc 'Generate ArchivesSpace SQL from summary CSV'
+    task :as_sql do
+      raise "Summary CSV required!" unless File.file? 'authorizer.csv'
+      sql = File.open('authorizer.sql', 'w')
+      CSV.foreach('authorizer.csv', headers: true) do |row|
+        data       = row.to_hash
+        ['accession', 'resource'].each do |t|
+          template = File.read(File.join("templates", "#{t}_#{data["type"]}.erb")).gsub("\n", ' ')
+          renderer = ERB.new(template)
+          sql.puts renderer.result(binding)
+        end
+      end
+      sql.close
+    end
+
     # bundle exec rake authorizer:authorities:summary
     desc 'Create authorizer summary csv'
     task :summary do

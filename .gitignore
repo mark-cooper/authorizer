@@ -6,4 +6,5 @@ vendor/
 authorizer.log
 *.csv
 *.db-journal
+*.sql
 *.swp

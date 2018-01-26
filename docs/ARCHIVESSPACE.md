@@ -140,7 +140,8 @@ AND   e.name = 'linked_agent_role'
 AND   name_agent.id IS NOT NULL;
 
 -- ACCESSION SUBJECT INSERT
-INSERT INTO subject_rlshp (
+INSERT INTO subject_rlshp
+SELECT
 	udef.accession_id,
   s.id,
   0,
@@ -157,7 +158,8 @@ AND   udef.string_2 = '__BIB_NUMBER__'
 AND   s.id IS NOT NULL;
 
 -- RESOURCE SUBJECT INSERT
-INSERT INTO subject_rlshp (
+INSERT INTO subject_rlshp
+SELECT
 	udef.resource_id,
   s.id,
   0,
