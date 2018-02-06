@@ -225,7 +225,7 @@ namespace :authorizer do
           current_page = batch.current_page.to_s
           puts "Dumping batch:\t#{current_page}"
           batch.all.each do |auth|
-            path = File.join(base_path, current_page)
+            path = File.join(base_path)
             FileUtils.mkdir_p path
             id = auth[:identifier] ? auth[:identifier] : URI.parse(auth[:uri]).path.split('/').last
             next if seen.include? id
