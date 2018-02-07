@@ -1,13 +1,14 @@
 INSERT INTO subject_rlshp
+(resource_id, subject_id, aspace_relationship_position, created_by, last_modified_by, system_mtime, user_mtime, suppressed)
 SELECT
 	udef.resource_id,
-  s.id,
-  0,
-  'admin',
-  'admin',
-  NOW(),
-  NOW(),
-  0
+  s.id as subject_id,
+	0 as aspace_relationship_position,
+  'admin' as created_by,
+  'admin' as last_modified_by,
+  NOW() as system_mtime,
+  NOW() as user_mtime,
+  0 as suppressed
 FROM user_defined udef
 JOIN subject s ON s.authority_id = '<%= data["identifier"] %>'
 WHERE udef.resource_id IS NOT NULL

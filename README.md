@@ -63,7 +63,13 @@ For use with [aspace-importer](https://github.com/lyrasis/aspace-importer.git):
 
 ```bash
 mkdir -p /tmp/aspace/import
-for file in ./data/auth/loc/*/*.xml; do cp "$file" /tmp/aspace/import/; done
+mkdir -p /tmp/aspace/json
+for file in ./data/auth/loc/*.xml; do cp "$file" /tmp/aspace/import/; done
+for file in ./data/auth/dts/*.xml; do cp "$file" /tmp/aspace/import/; done
+
+# for rsync
+./upload.sh loc mcooper yale-staging 922 /tmp/aspace/import
+./upload.sh dts mcooper yale-staging 922 /tmp/aspace/import
 
 # removing
 for file in /tmp/aspace/import/*.xml; do rm "$file"; done
