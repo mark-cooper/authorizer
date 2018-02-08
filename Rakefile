@@ -176,6 +176,22 @@ namespace :authorizer do
       File.open('authorizer.csv', 'w') { |f| f.write csv }
     end
 
+    # bundle exec rake authorizer:authorities:undifferentiated
+    desc 'Find undifferentiated LOC auth record headings'
+    task :undifferentiated do
+      Auth.select(:record).where(source: 'loc')
+        .exclude(record: nil)
+        .each_page(100) do |batch|
+          batch.each do |b|
+            record = b[:record]
+            reader = MARC::XMLReader.new(StringIO.new(record))
+            for r in reader
+              puts r['001'] if r['667'] and r['667'].value =~ /^(?!formerly).*undifferentiated/i
+            end
+          end
+      end
+    end
+
     # bundle exec rake authorizer:authorities:validate_loc_headings
     desc 'Validate all LOC auth record headings'
     task :validate_loc_headings do
