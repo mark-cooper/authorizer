@@ -4,6 +4,7 @@ plugins/
 vendor/
 .DS_Store
 authorizer.log
+*.bak
 *.csv
 *.db-journal
 *.sql
