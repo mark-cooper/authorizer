@@ -103,6 +103,11 @@ namespace :authorizer do
       auth   = Auth[id]
       if auth.source == 'loc'
         record = MARC::XMLReader.new(StringIO.new(auth[:record])).first
+        if record.nil?
+          auth.update(valid: false)
+          auth.save
+          next
+        end
         regexp               = auth[:type] == 'name' ? /,http.*/ : /(--|http.*)/
         # fingerprint (heading w/o delims, uri & non-word chars)
         unauthorized_heading = auth[:heading].gsub(regexp, '').gsub(/[^[:word:]]+/, '')
