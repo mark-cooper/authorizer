@@ -74,6 +74,9 @@ for file in ./data/auth/dts/*.xml; do cp "$file" /tmp/aspace/import/; done
 # removing
 for file in /tmp/aspace/import/*.xml; do rm "$file"; done
 for file in /tmp/aspace/json/*.json; do rm "$file"; done
+
+# loading authorizer.sql
+mysql --verbose -h 127.0.0.1 -u as -pas123 archivesspace < authorizer.sql
 ```
 
 There's a helper for testing with ArchivesSpace:
