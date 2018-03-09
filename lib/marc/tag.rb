@@ -17,6 +17,9 @@ module MARC
       650
       651
       655
+      690
+      692
+      693
     ].freeze
 
     # MARC::Tag::AUTHS
