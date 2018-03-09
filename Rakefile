@@ -149,6 +149,9 @@ namespace :authorizer do
         '600' => 'person',
         '610' => 'corporate_entity',
         '611' => 'family',
+        '700' => 'person',
+        '710' => 'corporate_entity',
+        '711' => 'family',
       }
 
       data = []

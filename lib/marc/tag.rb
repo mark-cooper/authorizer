@@ -10,6 +10,9 @@ module MARC
       600
       610
       611
+      700
+      710
+      711
     ].freeze
 
     # MARC::Tag::SUBJECTS
