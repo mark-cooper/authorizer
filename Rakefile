@@ -142,6 +142,7 @@ namespace :authorizer do
     desc 'Create authorizer summary csv'
     task :summary do
       attributes = %w{bib_number tag datafield identifier uri type agent_type agent_role}
+      # IDEALLY THIS WOULD BE PUSHED TO RECORD PROCESSOR AND IN DB
       agent_type_map = {
         '100' => 'person',
         '110' => 'corporate_entity',
@@ -160,13 +161,13 @@ namespace :authorizer do
         current_page = batch.current_page.to_s
         puts "Generating summary:\t#{current_page}"
         batch.all.each do |bib|
-          bib.auths_dataset.select(:tag, :datafield, :identifier, :uri).each do |auth|
+          bib.auths_dataset.select(:tag, :datafield, :type, :identifier, :uri).each do |auth|
             row_data = { bib_number: bib.bib_number }
             row_data[:tag]        = auth.tag
             row_data[:datafield]  = auth.datafield
             row_data[:identifier] = auth.identifier
             row_data[:uri]        = auth.uri
-            row_data[:type]       = auth.tag =~ /^65/ ? 'subject' : 'agent'
+            row_data[:type]       = auth.type == 'name' ? 'agent' : 'subject'
             row_data[:agent_type] = agent_type_map.fetch(auth.tag, '')
             row_data[:agent_role] = auth.tag =~ /^1/  ? 'creator' : 'subject'
             data << row_data
