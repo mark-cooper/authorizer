@@ -150,6 +150,8 @@ namespace :authorizer do
         '600' => 'person',
         '610' => 'corporate_entity',
         '611' => 'family',
+        '692' => 'person',
+        '693' => 'corporate_entity',
         '700' => 'person',
         '710' => 'corporate_entity',
         '711' => 'family',

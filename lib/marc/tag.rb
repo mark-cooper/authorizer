@@ -10,6 +10,8 @@ module MARC
       600
       610
       611
+      692
+      693
       700
       710
       711
@@ -17,12 +19,12 @@ module MARC
 
     # MARC::Tag::SUBJECTS
     SUBJECTS = %w[
+      630
       650
       651
       655
       690
-      692
-      693
+      740
     ].freeze
 
     # MARC::Tag::AUTHS
