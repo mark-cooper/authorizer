@@ -24,7 +24,7 @@ module Authorizer
         heading    = type == 'name' ? auth.to_query_str(',') : auth.to_query_str
         source     = auth['2']
         uri        = auth['0']
-        identifier = uri ? URI.parse(uri).path.split('/').last : nil
+        identifier = uri ? URI.parse(uri.strip).path.split('/').last : nil
         ils        = uri ? true : false
 
         # update source if not set but we have uri and matches loc
