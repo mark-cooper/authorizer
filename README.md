@@ -52,6 +52,7 @@ bundle exec rake authorizer:authorities:as_sql
 ## Other tasks
 
 ```bash
+bundle exec rake authorizer:authorities:undifferentiated
 bundle exec rake authorizer:authorities:download:single[http://vocab.getty.edu/aat/300028689,AAT] | xmllint --format -
 bundle exec rake authorizer:authorities:search_name['Obama\, Barack']
 bundle exec rake authorizer:authorities:search_subject['Cyberpunk fiction']
