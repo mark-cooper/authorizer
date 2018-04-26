@@ -11,7 +11,7 @@ module Authorizer
       @subject_tags = subject_tags
       @auth_tags    = (name_tags + subject_tags).freeze
       @datafields   = []
-      @logger       = Logging.logger[self] 
+      @logger       = Logging.logger[self]
     end
 
     def process
@@ -24,7 +24,8 @@ module Authorizer
         heading    = type == 'name' ? auth.to_query_str(',') : auth.to_query_str
         source     = auth['2']
         uri        = auth['0']
-        identifier = uri ? URI.parse(uri.strip).path.split('/').last : nil
+        uri        = uri.strip if uri
+        identifier = uri ? URI.parse(uri).path.split('/').last : nil
         ils        = uri ? true : false
 
         # update source if not set but we have uri and matches loc
