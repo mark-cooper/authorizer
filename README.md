@@ -47,6 +47,7 @@ bundle exec rake authorizer:db:dump_auth_xml['aat']
 bundle exec rake authorizer:db:dump_auth_xml['dts']
 bundle exec rake authorizer:authorities:summary
 bundle exec rake authorizer:authorities:as_sql
+bundle exec rake authorizer:authorities:as_koch_sql
 ```
 
 ## Other tasks
@@ -68,6 +69,8 @@ mkdir -p /tmp/aspace/json
 for file in ./data/auth/loc/*.xml; do cp "$file" /tmp/aspace/import/; done
 for file in ./data/auth/dts/*.xml; do cp "$file" /tmp/aspace/import/; done
 
+ls /tmp/aspace/import/ | wc -l
+
 # for rsync
 ./upload.sh loc mcooper yale-staging 922 /tmp/aspace/import
 ./upload.sh dts mcooper yale-staging 922 /tmp/aspace/import
@@ -75,9 +78,6 @@ for file in ./data/auth/dts/*.xml; do cp "$file" /tmp/aspace/import/; done
 # removing
 for file in /tmp/aspace/import/*.xml; do rm "$file"; done
 for file in /tmp/aspace/json/*.json; do rm "$file"; done
-
-# loading authorizer.sql
-mysql --verbose -h 127.0.0.1 -u as -pas123 archivesspace < authorizer.sql
 ```
 
 There's a helper for testing with ArchivesSpace:
@@ -87,6 +87,24 @@ There's a helper for testing with ArchivesSpace:
 ```
 
 Note: requires Docker and MySQL CLI tools.
+
+From source:
+
+```bash
+cd /path/to/archivesspace
+git checkout 2.2.0_marcxml_backport
+./build/run bootstrap
+# run db prep, check config.rb
+supervisord -c supervisord/backend.conf
+```
+
+After import run the authorizer SQL:
+
+```bash
+# loading authorizer.sql ()
+mysql --verbose -h 127.0.0.1 -u as -pas123 archivesspace < koch.sql
+mysql --verbose -h 127.0.0.1 -u as -pas123 archivesspace < authorizer.sql
+```
 
 ## Queries
 
