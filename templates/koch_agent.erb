@@ -1,0 +1,22 @@
+INSERT INTO linked_agents_rlshp
+(resource_id, agent_<%= data["agent_type"] %>_id, aspace_relationship_position, created_by, last_modified_by, create_time, system_mtime, user_mtime, role_id, suppressed)
+SELECT
+  r.id,
+  agent.id as agent_<%= data["agent_type"] %>_id,
+  0 as aspace_relationship_position,
+  'lyrasis-dts' as created_by,
+  'lyrasis-dts' as last_modified_by,
+  NOW() as create_time,
+  NOW() as system_mtime,
+  NOW() as user_mtime,
+  ev.id as role_id,
+  0 as suppressed
+FROM resource r
+JOIN name_authority_id auth ON auth.authority_id = '<%= data["identifier"] %>'
+JOIN name_<%= data["agent_type"] %> name ON auth.name_<%= data["agent_type"] %>_id = name.id
+JOIN agent_<%= data["agent_type"] %> agent ON name.agent_<%= data["agent_type"] %>_id = agent.id
+JOIN enumeration_value ev ON ev.value = '<%= data["agent_role"] %>'
+JOIN enumeration e ON ev.enumeration_id = e.id
+WHERE r.title = 'Frederick R. Koch collection'
+AND   e.name = 'linked_agent_role'
+AND   auth.id IS NOT NULL;

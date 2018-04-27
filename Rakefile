@@ -138,6 +138,24 @@ namespace :authorizer do
       sql.close
     end
 
+    # bundle exec rake authorizer:authorities:as_koch_sql
+    desc 'Generate ArchivesSpace SQL from summary CSV for Koch Collection'
+    task :as_koch_sql do
+      raise "Summary CSV required!" unless File.file? 'authorizer.csv'
+      sql = File.open('koch.sql', 'w')
+      count = 0
+      CSV.foreach('authorizer.csv', headers: true) do |row|
+        data       = row.to_hash
+        next unless data["bib_number"] == "8273828"
+        template = File.read(File.join("templates", "koch_#{data["type"]}.erb")).gsub("\n", ' ')
+        renderer = ERB.new(template)
+        sql.puts renderer.result(binding)
+        count +=1
+      end
+      sql.close
+      puts "KOCH records: #{count}"
+    end
+
     # bundle exec rake authorizer:authorities:summary
     desc 'Create authorizer summary csv'
     task :summary do

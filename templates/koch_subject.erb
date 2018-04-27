@@ -1,0 +1,15 @@
+INSERT INTO subject_rlshp
+(resource_id, subject_id, aspace_relationship_position, created_by, last_modified_by, system_mtime, user_mtime, suppressed)
+SELECT
+	r.id,
+  s.id as subject_id,
+	0 as aspace_relationship_position,
+  'lyrasis-dts' as created_by,
+  'lyrasis-dts' as last_modified_by,
+  NOW() as system_mtime,
+  NOW() as user_mtime,
+  0 as suppressed
+FROM resource r
+JOIN subject s ON s.authority_id = '<%= data["identifier"] %>'
+WHERE r.title = 'Frederick R. Koch collection'
+AND   s.id IS NOT NULL;
