@@ -48,6 +48,7 @@ bundle exec rake authorizer:db:dump_auth_xml['dts']
 bundle exec rake authorizer:authorities:summary
 bundle exec rake authorizer:authorities:as_sql
 bundle exec rake authorizer:authorities:as_koch_sql
+bundle exec rake authorizer:authorities:as_authid_sql
 ```
 
 ## Other tasks
