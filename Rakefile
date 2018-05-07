@@ -189,7 +189,7 @@ namespace :authorizer do
             row_data[:uri]        = auth.uri
             row_data[:type]       = auth.type == 'name' ? 'agent' : 'subject'
             row_data[:agent_type] = agent_type_map.fetch(auth.tag, '')
-            row_data[:agent_role] = auth.tag =~ /^1/  ? 'creator' : 'subject'
+            row_data[:agent_role] = auth.tag =~ /^[1|7]/  ? 'creator' : 'subject'
             data << row_data
           end
         end
