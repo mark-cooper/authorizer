@@ -167,7 +167,7 @@ namespace :authorizer do
         next unless data["uri"] =~ /id.loc.gov/
         uri        = data["uri"].strip
         identifier = URI.parse(uri).path.split('/').last
-        sql.puts "UPDATE name_authority_id SET authority_id = '#{uri}', system_mtime = NOW() WHERE authority_id = '#{identifier}' AND created_by = 'lyrasis-dts';"
+        sql.puts "UPDATE IGNORE name_authority_id SET authority_id = '#{uri}', system_mtime = NOW() WHERE authority_id = '#{identifier}' AND created_by = 'lyrasis-dts';"
         count +=1
       end
       sql.close
