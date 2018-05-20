@@ -17,7 +17,7 @@ JOIN name_<%= data["agent_type"] %> name ON auth.name_<%= data["agent_type"] %>_
 JOIN agent_<%= data["agent_type"] %> agent ON name.agent_<%= data["agent_type"] %>_id = agent.id
 JOIN enumeration_value ev ON ev.value = '<%= data["agent_role"] %>'
 JOIN enumeration e ON ev.enumeration_id = e.id
-WHERE udef.resource_id IS NOT NULL
+WHERE udef.resource_id = <%= data["linked_record_id"] %>
 AND   udef.string_2 IS NOT NULL
 AND   udef.string_2 = '<%= data["bib_number"] %>'
 AND   e.name = 'linked_agent_role'

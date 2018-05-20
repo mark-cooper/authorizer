@@ -122,20 +122,48 @@ namespace :authorizer do
       end
     end
 
+    # map.csv: SELECT string_2 as bib_number, accession_id, resource_id FROM user_defined WHERE string_2 IS NOT NULL;
     # bundle exec rake authorizer:authorities:as_sql
     desc 'Generate ArchivesSpace SQL from summary CSV'
     task :as_sql do
       raise "Summary CSV required!" unless File.file? 'authorizer.csv'
-      sql = File.open('authorizer.sql', 'w')
+      raise "Map CSV required!"     unless File.file? 'map.csv'
+      map = {
+        accessions: {},
+        resources: {},
+      }
+      CSV.foreach('map.csv', headers: true) do |row|
+        data = row.to_hash
+        if data["accession_id"] != "NULL"
+          map[:accessions][data["bib_number"]] = data["accession_id"]
+        elsif data["resource_id"] != "NULL"
+          map[:resources][data["bib_number"]] = data["resource_id"]
+        else
+          raise "Irregular map entry: #{data.inspect}"
+        end
+      end
+
+      sql_a = File.open('authorizer_accession.sql', 'w')
+      sql_r = File.open('authorizer_resource.sql', 'w')
       CSV.foreach('authorizer.csv', headers: true) do |row|
         data       = row.to_hash
         ['accession', 'resource'].each do |t|
           template = File.read(File.join("templates", "#{t}_#{data["type"]}.erb")).gsub("\n", ' ')
           renderer = ERB.new(template)
-          sql.puts renderer.result(binding)
+
+          if t == 'accession' and map[:accessions].key?(data["bib_number"])
+            data["linked_record_id"] = map[:accessions][data["bib_number"]]
+            sql_a.puts(renderer.result(binding))
+          end
+
+          if t == 'resource' and map[:resources].key?(data["bib_number"])
+            data["linked_record_id"] = map[:resources][data["bib_number"]]
+            sql_r.puts(renderer.result(binding))
+          end
         end
       end
-      sql.close
+      sql_a.close
+      sql_r.close
     end
 
     # bundle exec rake authorizer:authorities:as_koch_sql
