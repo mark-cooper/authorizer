@@ -192,15 +192,15 @@ namespace :authorizer do
       agent_type_map = {
         '100' => 'person',
         '110' => 'corporate_entity',
-        '111' => 'family',
+        '111' => 'corporate_entity',
         '600' => 'person',
         '610' => 'corporate_entity',
-        '611' => 'family',
+        '611' => 'corporate_entity',
         '692' => 'person',
         '693' => 'corporate_entity',
         '700' => 'person',
         '710' => 'corporate_entity',
-        '711' => 'family',
+        '711' => 'corporate_entity',
       }
 
       data = []
@@ -211,13 +211,16 @@ namespace :authorizer do
         batch.all.each do |bib|
           bib.auths_dataset.select(:tag, :datafield, :type, :source, :identifier, :uri).each do |auth|
             next if auth.source == 'aat' # TODO: for now skip aat
+            atype = agent_type_map.fetch(auth.tag, '')
+            atype = 'family' if auth.datafield =~ /[167]00 30 \$a/
+
             row_data = { bib_number: bib.bib_number }
             row_data[:tag]        = auth.tag
             row_data[:datafield]  = auth.datafield
             row_data[:identifier] = auth.identifier
             row_data[:uri]        = auth.uri
             row_data[:type]       = auth.type == 'name' ? 'agent' : 'subject'
-            row_data[:agent_type] = agent_type_map.fetch(auth.tag, '')
+            row_data[:agent_type] = atype
             row_data[:agent_role] = auth.tag =~ /^[1|7]/  ? 'creator' : 'subject'
             data << row_data
           end
