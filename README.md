@@ -42,6 +42,7 @@ bundle exec rake authorizer:db:populate_from_file # requires data/bib/authorizer
 bundle exec rake authorizer:authorities:download:batch
 bundle exec rake authorizer:db:generate_stub_records
 bundle exec rake authorizer:authorities:validate_loc_headings
+bundle exec rake authorizer:authorities:update_identifier_to_uri
 bundle exec rake authorizer:db:dump_auth_xml['loc']
 bundle exec rake authorizer:db:dump_auth_xml['aat']
 bundle exec rake authorizer:db:dump_auth_xml['dts']
@@ -49,7 +50,6 @@ bundle exec rake authorizer:authorities:summary
 # map.csv: SELECT string_2 as bib_number, accession_id, resource_id FROM user_defined WHERE string_2 IS NOT NULL;
 bundle exec rake authorizer:authorities:as_sql
 bundle exec rake authorizer:authorities:as_koch_sql
-bundle exec rake authorizer:authorities:as_authid_sql
 ```
 
 ## Other tasks

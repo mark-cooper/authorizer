@@ -8,9 +8,9 @@ for file in ./data/auth/dts/*.xml; do rm "$file"; done
 echo "Deleting LOC records"
 for file in ./data/auth/loc/*.xml; do rm "$file"; done
 
-echo "Deleting logs and sql"
+echo "Deleting csv, logs and sql"
 > authorizer.log
-rm -f authorizer.csv authorizer.sql
+rm -f *.csv *.sql
 
 echo "Running database migrations"
 bundle exec sequel -m db/migrations -M 0 'sqlite://db/authorizer.db'

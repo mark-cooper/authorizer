@@ -184,24 +184,6 @@ namespace :authorizer do
       puts "KOCH records: #{count}"
     end
 
-    # bundle exec rake authorizer:authorities:as_authid_sql
-    desc 'Generate ArchivesSpace SQL for authority id updates'
-    task :as_authid_sql do
-      raise "Summary CSV required!" unless File.file? 'authorizer.csv'
-      sql = File.open('authid.sql', 'w')
-      count = 0
-      CSV.foreach('authorizer.csv', headers: true) do |row|
-        data       = row.to_hash
-        next unless data["uri"] =~ /id.loc.gov/
-        uri        = data["uri"].strip
-        identifier = URI.parse(uri).path.split('/').last
-        sql.puts "UPDATE IGNORE name_authority_id SET authority_id = '#{uri}', system_mtime = NOW() WHERE authority_id = '#{identifier}' AND created_by = 'lyrasis-dts';"
-        count +=1
-      end
-      sql.close
-      puts "AUTHID records: #{count}"
-    end
-
     # bundle exec rake authorizer:authorities:summary
     desc 'Create authorizer summary csv'
     task :summary do
@@ -287,6 +269,26 @@ namespace :authorizer do
         sleep 5
       end
     end
+
+    # bundle exec rake authorizer:authorities:update_identifier_to_uri
+    desc 'Update 001 identifier to uri'
+    task :update_identifier_to_uri do
+      puts "Updating identifier to uri: #{Time.now}"
+      Auth.select(:id, :uri).where(source: 'loc')
+      .exclude(record: nil)
+      .exclude(uri: nil).each_page(100) do |batch|
+        logger.debug "Updating to uri for batch: #{batch.inspect}"
+        batch.each do |b|
+          auth   = Auth[b[:id]]
+          record = MARC::XMLReader.new(StringIO.new(auth[:record])).first
+          next if record.nil?
+          record['001'].value = b[:uri]
+          auth[:record] = record.to_xml
+          auth.save
+        end
+      end
+    end
+
   end
 
   namespace :bib do
