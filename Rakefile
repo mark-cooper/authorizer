@@ -209,7 +209,8 @@ namespace :authorizer do
         current_page = batch.current_page.to_s
         puts "Generating summary:\t#{current_page}"
         batch.all.each do |bib|
-          bib.auths_dataset.select(:tag, :datafield, :type, :identifier, :uri).each do |auth|
+          bib.auths_dataset.select(:tag, :datafield, :type, :source, :identifier, :uri).each do |auth|
+            next if auth.source == 'aat' # TODO: for now skip aat
             row_data = { bib_number: bib.bib_number }
             row_data[:tag]        = auth.tag
             row_data[:datafield]  = auth.datafield
