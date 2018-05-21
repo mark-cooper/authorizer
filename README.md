@@ -9,29 +9,11 @@ Create input / out directories:
 ```bash
 mkdir -p data/auth
 mkdir -p data/bib # copy mrc record/s here
-```
 
-Install the required gems:
-
-```
-bundle install
-```
-
-Run the schema migrations:
-
-```bash
-bundle exec sequel -m db/migrations 'sqlite://db/authorizer.db'
-```
-
-To reset the migrations (then re-run the migration command):
-
-```
+echo "Running database migrations"
 bundle exec sequel -m db/migrations -M 0 'sqlite://db/authorizer.db'
-```
-
-To try things out in an IRB session:
-
-```
+bundle exec sequel -m db/migrations 'sqlite://db/authorizer.db'
+# to try things out in an IRB session
 bundle exec sequel sqlite://db/authorizer.db -L app/models/
 ```
 
