@@ -217,7 +217,8 @@ namespace :authorizer do
             row_data = { bib_number: bib.bib_number }
             row_data[:tag]        = auth.tag
             row_data[:datafield]  = auth.datafield
-            row_data[:identifier] = auth.identifier
+            # loc identifier is uri in aspace
+            row_data[:identifier] = auth.source == 'loc' ? auth.uri : auth.identifier
             row_data[:uri]        = auth.uri
             row_data[:type]       = auth.type == 'name' ? 'agent' : 'subject'
             row_data[:agent_type] = atype
