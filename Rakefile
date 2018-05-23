@@ -315,6 +315,7 @@ namespace :authorizer do
       base_path = File.join("data", "auth", source)
       # use to avoid writing same record multiple times (needed if add parallel)
       seen      = Set.new
+      seen_cnt  = 0
       FileUtils.mkdir_p base_path
       Auth.where(source: source)
         .exclude(record: nil)
@@ -326,11 +327,15 @@ namespace :authorizer do
             path = File.join(base_path)
             FileUtils.mkdir_p path
             id = auth[:identifier] ? auth[:identifier] : URI.parse(auth[:uri]).path.split('/').last
-            next if seen.include? id
+            if seen.include? id
+              seen_cnt +=1
+              next
+            end
             File.open(File.join(path, "#{id}.xml"), 'w') { |f| f.write auth[:record] }
             seen << id
           end
       end
+      puts "Duplicate record count: #{seen_cnt}"
     end
 
     # TODO: rake authorizer:db:sweep (remove auths not associated with anything)
