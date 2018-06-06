@@ -410,5 +410,18 @@ namespace :authorizer do
       )
       processor.process
     end
+
+    # bundle exec rake authorizer:db:search_in_file[9451869]
+    desc 'Search headings from mrc in file by bib number'
+    task :search_in_file, [:bib, :file] do |_t, args|
+      bib  = args[:bib]
+      file = args[:file] || 'data/bib/authorizer.mrc'
+      MARC::FileReader.new(file, :mrc).each_record do |record, count|
+        if record['001'].value == bib
+          puts record.to_s
+          break
+        end
+      end
+    end
   end
 end
