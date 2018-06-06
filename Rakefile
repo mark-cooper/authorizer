@@ -212,7 +212,7 @@ namespace :authorizer do
           bib.auths_dataset.select(:tag, :datafield, :type, :source, :identifier, :uri).each do |auth|
             next if auth.source == 'aat' # TODO: for now skip aat
             atype = agent_type_map.fetch(auth.tag, '')
-            atype = 'family' if auth.datafield =~ /[167]00 30 \$a/
+            atype = 'family' if auth.datafield =~ /[167]00 3[0 ] \$a/
 
             row_data = { bib_number: bib.bib_number }
             row_data[:tag]        = auth.tag
