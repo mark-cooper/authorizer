@@ -210,7 +210,7 @@ namespace :authorizer do
         puts "Generating summary:\t#{current_page}"
         batch.all.each do |bib|
           bib.auths_dataset.select(:tag, :datafield, :type, :source, :identifier, :uri).each do |auth|
-            next if auth.source == 'aat' # TODO: for now skip aat
+            # next if auth.source == 'aat' # TODO: for now skip aat
             atype = agent_type_map.fetch(auth.tag, '')
             atype = 'family' if auth.datafield =~ /[167]00 3[0 ] \$a/
 
@@ -218,7 +218,7 @@ namespace :authorizer do
             row_data[:tag]        = auth.tag
             row_data[:datafield]  = auth.datafield
             # loc identifier is uri in aspace
-            row_data[:identifier] = auth.source == 'loc' ? auth.uri : auth.identifier
+            row_data[:identifier] = (auth.source == 'loc' or auth.source == 'aat') ? auth.uri : auth.identifier
             row_data[:uri]        = auth.uri
             row_data[:type]       = auth.type == 'name' ? 'agent' : 'subject'
             row_data[:agent_type] = atype
@@ -339,6 +339,37 @@ namespace :authorizer do
     end
 
     # TODO: rake authorizer:db:sweep (remove auths not associated with anything)
+
+    # bundle exec rake authorizer:db:generate_aat_records
+    desc 'Create aat records'
+    task :generate_aat_records do
+      Auth.where(source: 'aat')
+        .each_page(1000) do |batch|
+          current_page = batch.current_page.to_s
+          puts "Processing batch:\t#{current_page}"
+          batch.all.each do |auth|
+            m        = MARC::Record.new
+            m.leader = "00000nz  a2200000oi 4500"
+            # pos 11 = r for aat
+            m_008    = "860211|| anrnnbab|          |a ana |||"
+            m << MARC::ControlField.new('001', auth.uri)
+            m << MARC::ControlField.new('008', m_008)
+
+            df   = auth.datafield
+            tag  = df[0..2]
+            inds = df[4..5]
+            subs = df[7..-1]
+            subs = subs.split('$').delete_if(&:empty?).map do |s|
+              [ s[0..1].strip, s[2..-1].strip ]
+            end
+            m << MARC::DataField.new(tag, inds[0], inds[1], *subs)
+            scope_content = Nokogiri::XML(auth.record).xpath("//Note_Text").first
+            m << MARC::DataField.new('680', ' ', ' ', ['i', scope_content.inner_text]) if scope_content
+            auth.record = m.to_xml.to_s
+            auth.save
+        end
+      end
+    end
 
     # bundle exec rake authorizer:db:generate_stub_records
     desc 'Create stub records for auths without a uri'

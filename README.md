@@ -22,6 +22,7 @@ bundle exec sequel sqlite://db/authorizer.db -L app/models/
 ```bash
 bundle exec rake authorizer:db:populate_from_file # requires data/bib/authorizer.mrc
 bundle exec rake authorizer:authorities:download:batch
+bundle exec rake authorizer:db:generate_aat_records
 bundle exec rake authorizer:db:generate_stub_records
 bundle exec rake authorizer:authorities:validate_loc_headings
 bundle exec rake authorizer:authorities:update_identifier_to_uri
