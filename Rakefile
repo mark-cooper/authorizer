@@ -364,6 +364,7 @@ namespace :authorizer do
             end
             m << MARC::DataField.new(tag, inds[0], inds[1], *subs)
             scope_content = Nokogiri::XML(auth.record).xpath("//Note_Text").first
+            scope_content = Nokogiri::XML(auth.record).xpath("//*[@tag='680']").first unless scope_content
             m << MARC::DataField.new('680', ' ', ' ', ['i', scope_content.inner_text]) if scope_content
             auth.record = m.to_xml.to_s
             auth.save
