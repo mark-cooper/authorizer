@@ -9,6 +9,7 @@ Create input / out directories:
 ```bash
 mkdir -p data/auth
 mkdir -p data/bib # copy mrc record/s here
+./reset.sh
 
 echo "Running database migrations"
 bundle exec sequel -m db/migrations -M 0 'sqlite://db/authorizer.db'
@@ -24,6 +25,7 @@ bundle exec rake authorizer:db:populate_from_file # requires data/bib/authorizer
 bundle exec rake authorizer:authorities:download:batch
 bundle exec rake authorizer:db:generate_aat_records
 bundle exec rake authorizer:db:generate_stub_records
+bundle exec rake authorizer:authorities:undifferentiated
 bundle exec rake authorizer:authorities:validate_loc_headings
 bundle exec rake authorizer:authorities:update_identifier_to_uri
 bundle exec rake authorizer:db:dump_auth_xml['loc']
