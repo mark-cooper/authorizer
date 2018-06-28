@@ -55,6 +55,7 @@ mkdir -p /tmp/aspace/import
 mkdir -p /tmp/aspace/json
 for file in ./data/auth/loc/*.xml; do cp "$file" /tmp/aspace/import/; done
 for file in ./data/auth/dts/*.xml; do cp "$file" /tmp/aspace/import/; done
+for file in ./data/auth/aat/*.xml; do cp "$file" /tmp/aspace/import/; done
 
 ls /tmp/aspace/import/ | wc -l
 
