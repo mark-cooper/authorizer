@@ -23,6 +23,7 @@ module MARC
       650
       651
       655
+      656
       690
       740
     ].freeze
