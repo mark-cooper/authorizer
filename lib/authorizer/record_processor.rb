@@ -30,7 +30,7 @@ module Authorizer
 
         # update source if not set but we have uri and matches loc
         source  = 'loc' if !source and uri =~ /id\.loc\.gov/
-        source  = 'loc' if source and source =~ /(lcgft|lcsh)/ # late addition
+        source  = 'loc' if source and source =~ /(lcgft|lcsh|lctgm)/ # late addition
 
         data = {
           tag: auth.tag,
