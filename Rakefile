@@ -381,7 +381,7 @@ namespace :authorizer do
           puts "Processing batch:\t#{current_page}"
           batch.all.each do |auth|
             # id on the heading so we don't duplicate on import
-            heading  = auth.datafield
+            heading  = (auth.tag + auth.heading).strip.downcase # but include tag scope
             fake_id  = "dts_#{Digest::SHA1.hexdigest(heading)}"
             m        = MARC::Record.new
             m.leader = "00000nz  a2200000oi 4500"
