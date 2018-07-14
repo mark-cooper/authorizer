@@ -32,7 +32,7 @@ bundle exec rake authorizer:db:dump_auth_xml['loc']
 bundle exec rake authorizer:db:dump_auth_xml['aat']
 bundle exec rake authorizer:db:dump_auth_xml['dts']
 bundle exec rake authorizer:authorities:summary
-# map.csv: SELECT string_2 as bib_number, accession_id, resource_id FROM user_defined WHERE string_2 IS NOT NULL;
+# map.csv: SELECT TRIM(string_2) as bib_number, accession_id, resource_id FROM user_defined WHERE string_2 IS NOT NULL;
 bundle exec rake authorizer:authorities:as_sql
 bundle exec rake authorizer:authorities:as_koch_sql
 ```
