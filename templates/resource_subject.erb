@@ -14,4 +14,5 @@ JOIN subject s ON s.authority_id = '<%= data["identifier"] %>'
 WHERE udef.resource_id = <%= data["linked_record_id"] %>
 AND   udef.string_2 IS NOT NULL
 AND   udef.string_2 = '<%= data["bib_number"] %>'
-AND   s.id IS NOT NULL;
+AND   s.id IS NOT NULL
+AND   s.created_by = 'lyrasis-dts';

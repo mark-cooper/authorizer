@@ -12,4 +12,5 @@ SELECT
 FROM resource r
 JOIN subject s ON s.authority_id = '<%= data["identifier"] %>'
 WHERE r.title = 'Frederick R. Koch collection'
-AND   s.id IS NOT NULL;
+AND   s.id IS NOT NULL
+AND   s.created_by = 'lyrasis-dts';

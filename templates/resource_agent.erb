@@ -21,4 +21,5 @@ WHERE udef.resource_id = <%= data["linked_record_id"] %>
 AND   udef.string_2 IS NOT NULL
 AND   udef.string_2 = '<%= data["bib_number"] %>'
 AND   e.name = 'linked_agent_role'
-AND   auth.id IS NOT NULL;
+AND   auth.id IS NOT NULL
+AND   auth.created_by = 'lyrasis-dts';

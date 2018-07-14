@@ -19,4 +19,5 @@ JOIN enumeration_value ev ON ev.value = '<%= data["agent_role"] %>'
 JOIN enumeration e ON ev.enumeration_id = e.id
 WHERE r.title = 'Frederick R. Koch collection'
 AND   e.name = 'linked_agent_role'
-AND   auth.id IS NOT NULL;
+AND   auth.id IS NOT NULL
+AND   auth.created_by = 'lyrasis-dts';
